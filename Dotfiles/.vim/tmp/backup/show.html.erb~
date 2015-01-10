@@ -1,0 +1,119 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Business ID:</strong>
+  <%= @livestock_head.id_number %>
+</p>
+
+<p>
+  <strong>Livestocktype:</strong>
+  <% if @livestock_head.livestock_type %>
+    <%= @livestock_head.livestock_type.lifestock_type %>
+  <% end %>
+</p>
+
+<p>
+  <strong>Pedigree:</strong>
+  <% if @livestock_head.pedigree %>
+    <%= @livestock_head.pedigree.pedigree %>
+  <% end %>
+</p>
+
+<p>
+  <strong>Date of birth:</strong>
+  <%= @livestock_head.last_date_of_birth %>
+</p>
+
+<p>
+  <strong>Insurance status:</strong>
+  <%= @livestock_head.insurance_status %>
+</p>
+<p>
+  <strong>Farmer:</strong>
+  <% if @livestock_head.farmer %>
+    <%= @livestock_head.farmer.full_name %>
+  <% end %>
+</p>
+
+<p>
+  <strong>Breeding History</strong>
+  <ul>
+    <% @livestock_head.livestock_events.each do |event| %>
+      <% if event.event_type == 'breeding'  %>
+        <li>Date: <%= event.date.to_formatted_s(:short) %></li>
+      <% end %>
+    <% end %>
+  </ul>
+</p>
+
+<p>
+  <strong>Testing History</strong>
+  <ul>
+    <% @livestock_head.livestock_events.each do |event| %>
+      <% if event.event_type == 'testing'  %>
+        <li>Date: <%= event.date.to_formatted_s(:short) %>, Result: <%= event.result %></li>
+      <% end %>
+    <% end %>
+  </ul>
+</p>
+
+<div class="form-actions">
+  <%= link_to 'Add breeding event', '#breedingModal', data: { toggle: 'modal', target: '#breedingModal' } %>
+  | <%= link_to 'Add testing event', '#testingModal', data: { toggle: 'modal', target: '#testingModal' } %>
+  | <%= link_to 'Edit', edit_livestock_head_path(@livestock_head) %>
+  | <%= link_to 'Back', livestock_heads_path %>
+</div>
+
+
+<!-- Breeding Modal -->
+<div class="modal fade" id="breedingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">Add Breeding Event</h4>
+      </div>
+      <div class="modal-body">
+      <%= simple_form_for(LivestockEvent.new) do |f| %>
+        <%= f.error_notification %>
+        <div class="form-inputs">
+          <%= f.hidden_field :livestock_head_id, value: @livestock_head.id %>
+          <%= f.hidden_field :event_type, value: 'breeding' %>
+          <%= f.input :date %>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <%= f.button :submit, class: 'btn btn-primary' %>
+      <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Testing Modal -->
+<div class="modal fade" id="testingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">Add Testing</h4>
+      </div>
+      <div class="modal-body">
+        <%= simple_form_for(LivestockEvent.new) do |f| %>
+          <%= f.error_notification %>
+          <div class="form-inputs">
+            <%= f.hidden_field :livestock_head_id, value: @livestock_head.id %>
+            <%= f.hidden_field :event_type, value: 'testing' %>
+            <%= f.input :date %>
+            <%= f.input :result %>
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <%= f.button :submit, class: 'btn btn-primary' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

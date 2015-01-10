@@ -1,0 +1,7 @@
+require 'helper'
+
+class TestVider < Test::Unit::TestCase
+  def test_namepsace
+    assert ViderVideoTag.is_a?(Module)
+  end
+end

@@ -1,0 +1,177 @@
+class UsersController < ApplicationController
+  before_action :require_login, except: [:show]
+  before_action :prepare_user, except: [:index, :edit_profile_cover, :edit_profile_picture, :switch_identity]
+  before_action :require_owner_authority, only: [:settings, :update, :delete]
+
+	def show
+    @profile_feeds = @user.profile_feed{}.first(10).map{|f| f if confirm_feed(f)}.compact.first(4)
+    # @profile_feeds = @user.profile_feed {|f| f}.map{|f| f if confirm_feed(f)}.compact.try{ |v| v[0..3]}
+	end
+
+  def index
+    @users = User.all
+  end
+
+  def activities
+    params[:page] ||= 1
+    @profile_feeds = @user.profile_feed(params[:page], 16){}.map{|f| f if confirm_feed(f)}.compact
+    @feeds_next_page = (@profile_feeds.empty? ? nil : ((params[:page].to_i+1).to_s))
+    # (@feeds_next_page = next_page) unless current_user.feed(next_page, 16){|f| f}.empty?
+    # all_feeds = @user.profile_feed {|f| f}.map{|f| f if confirm_feed(f)}.compact
+    # if all_feeds.kind_of?(Array)
+    #   params[:page] ||= 1
+    #   @profile_feeds = all_feeds.paginate(:page => params[:page], :per_page => 12)
+    # else
+    # @profile_feeds = all_feeds
+    # end
+  end
+
+  def update
+    if @user.update_attributes(params[:user].permit!)
+      sign_in @user, :bypass => true
+      redirect_to @user, notice: "Successfully edited your profile!"
+    else
+      redirect_to @user, alert: "Something went wrong! Please try again.."
+    end
+  end
+
+  def change_country
+    unless params[:country] == -1
+      country = Country.find_by(name: params[:country])
+      if country
+        @user.update_attribute(:country_id, country.id)
+      end
+    end
+    unless params[:state] == -1
+      @user.update_attribute(:state, params[:state])
+    end
+    respond_to do |format|
+      format.html {redirect_to @user}
+      format.js {render nothing: true}
+    end
+  end
+
+	def wishes
+    if params[:category]
+      if params[:category] == "all"
+        @garments=@user.wished_garments
+      else
+        @garments=@user.wished_garments.filter_by_category_name(params[:category]) 
+      end
+    end
+	end
+
+	def closet
+    if params[:category]
+      @garments=@user.owned_garments.filter_by_category_name(params[:category]) 
+    end
+	end
+
+  def liked_garments
+    @liked_garments = @user.liked_garments
+  end
+
+  def edit_profile_cover
+    @user = current_user
+    if params[:cover_photo].present?
+      cover_album = @user.albums.find_by(title_slug: "cover_photos")
+      unless cover_album
+        @user.initialize_albums
+      end
+      cover_image = Image.create(image: params[:cover_photo], album: cover_album, owner: current_user, uploader: current_user)
+      # old_cover_image = @user.images.find_by(cover: true)
+      # item_id = old_cover_image.try(:id)
+      # item_class = old_cover_image.class.to_s
+      ::Tekeya::Activity.where("entity_id = ? AND entity_type = ? AND activity_type = ?", @user.id, "User", "changed_cover_picture").map(&:delete)
+      @user.make_cover_picture(cover_image)
+      current_user.activities.changed_cover_picture(cover_image, {group: false})
+    end
+    params_hash = {
+      position_mobile: params['position-mobile'],
+      position_desktop: params['position-desktop'],
+      cover: params[:cover] == "1" ? true : false,
+      full: params[:full] == "1" ? true : false
+    }
+    @user.profile_images_settings = params_hash
+    @user.save!
+    respond_to do |format|
+      format.html {redirect_to @user}
+      format.js {render nothing: true}
+      format.json {render json: {cover: @user.cover.url}}
+    end 
+  end
+
+  def edit_profile_picture
+    @user = current_user
+    if params[:avatar].present?
+      profile_album = @user.albums.find_by(title_slug: "profile_photos")
+      unless profile_album
+        @user.initialize_albums
+      end
+      profile_image = Image.create(image: params[:avatar], album: profile_album, owner: current_user, uploader: current_user)
+      # old_porfile_image = @user.images.find_by(profile: true)
+      # item_id = old_porfile_image.try(:id)
+      # item_class = old_porfile_image.class.to_s
+      ::Tekeya::Activity.where("entity_id = ? AND entity_type = ? AND activity_type = ?", @user.id, "User", "changed_profile_picture").map(&:delete)
+
+      @user.make_profile_picture(profile_image)
+      current_user.activities.changed_profile_picture(profile_image, {group: false})
+    end
+    params_hash = {
+      position: params[:position],
+      cover: params[:cover] == "1" ? true : false,
+      full: params[:full] == "1" ? true : false
+    }
+    @user.profile_pictures_settings = params_hash
+    @user.save!
+    respond_to do |format|
+      format.html {redirect_to @user}
+      format.js {render nothing: true}
+      format.json {render json: {avatar: @user.avatar.url}}
+    end 
+  end  
+
+  def switch_identity
+    switch_back
+    redirect_to root_url, notice: "Successfuly switched back to your account!"
+  end
+
+  ### albums
+  def main_albums
+    # @albums = @user.albums.select{|album| (album.title_slug != "my_photos" || album.title_slug != "profile_photos") }
+  end
+
+  def closet_photos
+    @closet_photos = @user.closet_photos
+  end
+
+  def liked_photos
+    @liked_photos = @user.liked_photos
+  end
+
+  def my_photos
+    @my_photos = @user.my_photos
+  end
+
+  def profile_photos
+    @profile_photos = @user.profile_photos
+  end
+
+  def tagged_photos
+    @tagged_photos = @user.tagged_in_images
+  end
+
+private
+  def prepare_user
+    @user = User.find_by(id: params[:id])
+    unless @user
+      redirect_to root_url, alert: "Something went wrong! Please try again.."
+    end
+  end
+
+  def require_owner_authority
+    unless (@user == current_user)
+      redirect_to @user, alert: "This profile is not yours, you can not edit it!"
+    end
+  end
+end

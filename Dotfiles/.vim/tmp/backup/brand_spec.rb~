@@ -1,0 +1,80 @@
+require 'rails_helper'
+
+RSpec.describe Brand, type: :model do
+  describe "associations" do
+    it { should have_many :admins_pages }
+    it { should have_many :admins }
+    it { should have_many :collections }
+    it { should have_many(:garments).dependent(:destroy) }
+    it { should have_many :connectors }
+    it { should have_many :tagged_in_images }
+    it { should belong_to :owner }
+    xit { should belong_to :country }
+  end
+  
+  describe "validations" do
+    xit { should validate_uniqueness_of :name }
+    it { should validate_presence_of :owner }
+  end
+
+  it { should respond_to :owner_to_admin }
+  it { should respond_to :recent_images }
+  it { should respond_to :ban }
+  it { should respond_to :unban }
+  it { should respond_to :url }
+  it { should respond_to :my_photos }
+  it { should respond_to :profile_photos }
+  it { should respond_to :crawl_hm_starter }
+  it { should respond_to :crawl_hm }
+  it { should respond_to :set_tags }
+
+  xit "should set_tags before save" do
+    brand = build(:brand)
+    expect{ brand.save }.to change{ brand.tag_list }
+  end
+
+  describe "#ban" do
+    let(:brand) { build(:brand) }
+    before { brand.banned = true }
+
+    context "when banned is true" do
+      xit "return" do
+        # it { should  }
+      end
+    end
+
+    context "when banned is false" do
+      before { brand.banned = false }
+     it "change banned attribute to true" do
+        expect{ brand.ban }.to change{ brand.banned }.from(false).to(true)
+      end
+    end
+  end
+                                                         
+  describe "#unban" do
+    let(:brand) { build(:brand) }
+
+    context "when banned is true" do
+      before { brand.banned = true }
+      xit "change banned attribute to false" do
+        expect{ brand.unban }.to change{ brand.banned }.from(true).to(false)
+      end
+    end
+  end                                                    
+
+  describe "#owner_to_admin" do
+    # brand = build(:brand)
+    # Create a mock here
+  end
+
+  describe "#recent_images" do
+  end
+
+  describe "#url" do
+    it "returns url for the brand" do
+      brand = build(:brand)
+      expect(brand.url).to eq "/brands/#{brand.id}"
+    end
+  end
+
+end

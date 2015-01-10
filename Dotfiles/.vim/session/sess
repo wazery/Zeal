@@ -1,0 +1,187 @@
+let SessionLoad = 1
+if &cp | set nocp | endif
+let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
+let v:this_session=expand("<sfile>:p")
+silent only
+cd ~/
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+set shortmess=aoO
+badd +6 Sources/eleven/hconnect/app/controllers/pages_controller.rb
+badd +1 Sources/eleven/hconnect/app/views/devise
+badd +36 Sources/eleven/hconnect/app/views/devise/registrations/new.html.erb
+badd +20 Sources/eleven/hconnect/app/models/user.rb
+badd +1 Sources/eleven/hconnect/app/views/layouts/application.html.erb
+badd +1 Sources/eleven/hconnect/app/views/layouts/_navigation.html.erb
+badd +17 Sources/eleven/hconnect/app/views/layouts/_footer.html.erb
+badd +408 Sources/eleven/hconnect/app/assets/stylesheets/framework_and_overrides.css.scss
+badd +27 Sources/eleven/hconnect/app/controllers/admin/users_controller.rb
+badd +9 Sources/eleven/hconnect/app/controllers/admin/base_controller.rb
+badd +17 .vimrc
+badd +25 Sources/eleven/hconnect/app/controllers/application_controller.rb
+badd +17 Sources/eleven/hconnect/app/views/devise/sessions/new.html.erb
+badd +1 Sources/eleven/hconnect/app/views/devise/passwords
+badd +25 Sources/eleven/hconnect/app/views/devise/passwords/edit.html.erb
+badd +8 Sources/bassita/app/views/admin/partners/new.html.erb
+badd +1 Sources/bassita/app/controllers/category_controller.rb
+badd +25 Sources/bassita/app/controllers/causes_controller.rb
+badd +18 \[Vundle]\ Installer
+badd +11 Sources/bassita/config/routes.rb
+badd +13 Sources/bassita/app/views/pages/inside.html.erb
+badd +44 Sources/bassita/app/views/pages/home.html.erb
+badd +74 Sources/bassita/app/views/causes/_cause.html.erb
+badd +6 Sources/bassita/app/controllers/pages_controller.rb
+badd +9 Sources/bassita/app/helpers/application_helper.rb
+badd +36 Sources/bassita/app/views/admin/causes/index.html.erb
+badd +15 Sources/bassita/app/views/admin/categories/index.html.erb
+badd +6 Sources/bassita/app/views/causes/_video.html.erb
+badd +8 Sources/bassita/app/controllers/admin/base_controller.rb
+badd +1 Sources/bassita/app/controllers/admin/users_controller.rb
+badd +9 Sources/bassita/app/controllers/admin/categories_controller.rb
+badd +74 Sources/bassita/app/controllers/application_controller.rb
+badd +8 Sources/bassita/app/views/admin/causes/edit.html.erb
+badd +6 Sources/bassita/app/views/admin/images/_image_fields.html.erb
+badd +64 Sources/bassita/app/views/admin/causes/_form.html.erb
+badd +21 Sources/bassita/app/views/causes/show.html.erb
+badd +940 Sources/bassita/app/assets/stylesheets/style.less.erb
+badd +7 Sources/bassita/app/models/sponsor.rb
+badd +59 Sources/bassita/app/controllers/admin/causes_controller.rb
+badd +30 Sources/bassita/app/views/layouts/_navigation.html.erb
+badd +1 Sources/bassita/app/views/layouts/_user_links.html.erb
+badd +20 Sources/bassita/app/views/layouts/application.html.erb
+badd +170 Sources/bassita/app/assets/javascripts/application.js
+badd +22 Sources/bassita/app/views/layouts/_footer.html.erb
+badd +1 Sources/bassita/app/views/causes/_up.js.erb
+badd +91 Sources/ratyrate/lib/ratyrate/model.rb
+badd +15 \[Vundle]\ Installer
+argglobal
+silent! argdel *
+edit Sources/ratyrate/lib/ratyrate/model.rb
+set splitbelow splitright
+wincmd _ | wincmd |
+vsplit
+1wincmd h
+wincmd _ | wincmd |
+split
+1wincmd k
+wincmd w
+wincmd w
+wincmd _ | wincmd |
+split
+1wincmd k
+wincmd w
+set nosplitbelow
+set nosplitright
+wincmd t
+set winheight=1 winwidth=1
+exe '1resize ' . ((&lines * 34 + 19) / 38)
+exe 'vert 1resize ' . ((&columns * 100 + 71) / 143)
+exe '2resize ' . ((&lines * 1 + 19) / 38)
+exe 'vert 2resize ' . ((&columns * 100 + 71) / 143)
+exe '3resize ' . ((&lines * 18 + 19) / 38)
+exe 'vert 3resize ' . ((&columns * 42 + 71) / 143)
+exe '4resize ' . ((&lines * 17 + 19) / 38)
+exe 'vert 4resize ' . ((&columns * 42 + 71) / 143)
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 35 - ((30 * winheight(0) + 17) / 34)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+35
+normal! 04|
+lcd ~/Sources/bassita/app/views/causes
+wincmd w
+argglobal
+edit ~/Sources/bassita/app/views/causes/_cause.html.erb
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 94 - ((0 * winheight(0) + 0) / 1)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+94
+let s:c = 44 - ((36 * winwidth(0) + 50) / 100)
+if s:c > 0
+  exe 'normal! ' . s:c . '|zs' . 44 . '|'
+else
+  normal! 044|
+endif
+lcd ~/Sources/bassita/app/views/causes
+wincmd w
+argglobal
+edit ~/Sources/bassita/app/controllers/causes_controller.rb
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 20 - ((9 * winheight(0) + 9) / 18)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+20
+normal! 063|
+lcd ~/Sources/bassita/app/views/causes
+wincmd w
+argglobal
+edit ~/Sources/bassita/app/views/layouts/_navigation.html.erb
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 45 - ((10 * winheight(0) + 8) / 17)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+45
+normal! 042|
+lcd ~/Sources/bassita/app/views/causes
+wincmd w
+exe '1resize ' . ((&lines * 34 + 19) / 38)
+exe 'vert 1resize ' . ((&columns * 100 + 71) / 143)
+exe '2resize ' . ((&lines * 1 + 19) / 38)
+exe 'vert 2resize ' . ((&columns * 100 + 71) / 143)
+exe '3resize ' . ((&lines * 18 + 19) / 38)
+exe 'vert 3resize ' . ((&columns * 42 + 71) / 143)
+exe '4resize ' . ((&lines * 17 + 19) / 38)
+exe 'vert 4resize ' . ((&columns * 42 + 71) / 143)
+tabnext 1
+if exists('s:wipebuf')
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20 shortmess=filnxtToO
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if file_readable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &so = s:so_save | let &siso = s:siso_save
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :

@@ -1,0 +1,5 @@
+class AddSceneDiagramToIncidentReport < ActiveRecord::Migration
+  def change
+    add_column :incident_reports, :scene_diagram, :text
+  end
+end

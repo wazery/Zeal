@@ -1,0 +1,6 @@
+class AddDataToRackDevices < ActiveRecord::Migration
+  def change
+    add_column :rack_devices, :name, :string
+    add_column :rack_devices, :location, :string
+  end
+end

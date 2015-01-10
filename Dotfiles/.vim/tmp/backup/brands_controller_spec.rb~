@@ -1,0 +1,130 @@
+require 'rails_helper'
+
+RSpec.describe BrandsController, type: :controller do
+  let(:user) { create(:user) }
+  let(:brand) { create(:brand, owner: user) }
+
+  before(:each) do
+    sign_in :user, user
+  end
+
+  describe "GET index" do
+    it "responds successfully with an HTTP 200 status code" do
+      get :index
+      expect(response).to be_success
+      expect(response.status).to eq(200)
+    end
+
+    it "renders the index template" do
+      get :index
+      expect(response).to render_template :index
+    end
+  end
+
+  describe "GET show" do
+    context "when brand is set" do
+      it "assigns the requested brand as @brand" do
+        get :show, id: brand
+        expect(assigns(:brand)).to eq(brand)
+      end
+
+      it "renders the show template" do
+        get :show, id: brand
+        expect(response).to render_template :show
+      end
+    end
+
+      context "when brand is not properly set" do
+        xit "redirects to root url and alert a message" do
+          get :show, id: 900
+          expect(response).to redirect_to root_url
+          expect(flash[:alert]).to_not be_nil
+        end
+      end
+    end
+
+    let(:valid_attributes) do
+      {
+        name: "Some name"
+      }
+    end
+
+    let(:invalid_attributes) do
+      {
+        name: "s"
+      }
+    end
+
+    describe "PUT update" do
+      before(:each) do
+        get :switch_identity, id: brand
+      end
+
+      context "when valid params" do
+        it "update brand attributes" do
+          put :update, id: brand, brand: valid_attributes
+          expect(assigns(:brand)).to eq(brand)
+        end
+
+        it "redirects to brand show page with success notice message" do
+          put :update, id: brand, brand: valid_attributes
+          expect(response).to redirect_to brand_path(brand)
+          expect(flash[:notice]).to eq("Successfully updated settings!")
+        end
+      end
+      
+      context "when invalid params" do
+        it "redirects to brand show page with alert message" do
+          put :update, id: brand, brand: invalid_attributes
+          expect(response).to redirect_to brand_path(brand)
+          expect(flash[:alert]).to eq("Something went wrong! Please try again..")
+        end
+      end
+  end
+
+  describe "#activities" do
+    it "" do
+    end
+  end
+
+  describe "#switch_identity" do
+    context "when their is a brand to switch to" do
+      it "switches the identity to the brand and redirects to brand show page" do
+        get :switch_identity, id: brand
+        expect(response).to redirect_to brand_path(brand)
+      end
+    end
+
+    context "when no brands to switch to " do
+      it "redirects to root url with alert message" do
+        get :switch_identity, id: create(:brand)
+        expect(response).to redirect_to root_url
+        expect(flash[:alert]).to eq("You must be an admin for this brand!")
+      end
+    end
+  end
+
+  describe "PUT create" do
+    context "when successfully created a brand" do
+      xit "creates a new brand and sets its owner" do
+        put :create, brand: { id: 1, name: "Some name" }
+        expect(subject.instance_variable_get('@brand')).to eq(Brand.find(1))
+        expect(subject.instance_variable_get('@brand').owner).to eq(user) 
+      end
+
+      xit "renders brand show template with notice message" do
+        put :create, brand: valid_attributes
+        expect(response).to render_template :show
+        expect(flash[:notice]).to eq("Successfully added your brand!")
+      end
+    end
+
+    context "when not successfully created a brand" do
+      it "redirects to root url with alert message" do
+        put :create
+        expect(response).to redirect_to root_url
+        expect(flash[:alert]).to eq("Something went wrong! Please try again..")
+      end
+    end
+  end
+end

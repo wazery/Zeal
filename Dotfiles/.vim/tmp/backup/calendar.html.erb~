@@ -1,0 +1,6 @@
+<p>
+  <%= link_to 'Events Calendar', page_path('events_calendar') %>
+</p>
+<p>
+  <%= link_to 'Your Upcoming Visits Calendar', page_path('visit_reports_calendar') %>
+</p>

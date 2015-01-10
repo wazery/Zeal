@@ -1,0 +1,217 @@
+class User < ActiveRecord::Base
+  include Tekeya::Entity
+  include SearchableEntity
+  include SocialOwnership
+  include EntityMainImages
+  include Shareable
+
+  before_save :set_tags
+  acts_as_taggable # Alias for acts_as_taggable_on :tags
+  after_create :initialize_albums
+
+  devise :database_authenticatable, :registerable,
+         :recoverable, :rememberable, :trackable, :validatable, :omniauthable
+
+  has_many :social_providers, dependent: :destroy do
+    def facebook
+      find_by(provider_type: "facebook")
+    end
+
+    def twitter
+      find_by(provider_type: "twitter")
+    end
+
+    # def google
+    #   find_by(provider_type: "google")
+    # end
+  end
+
+  validates :first_name, presence: true
+  validates :last_name, presence: true
+
+  belongs_to :country
+
+  has_many :comments, as: :commenter, dependent: :destroy
+
+  has_many :likes, as: :liker, dependent: :destroy
+
+  has_many :posts, as: :poster, dependent: :destroy
+  
+  has_many :created_albums, class_name: "Album", as: :creator
+  has_many :albums, as: :owner, dependent: :destroy
+  
+  has_many :created_collections, class_name: "Collection", as: :creator
+  has_many :created_garments, class_name: "Garment", as: :creator
+
+  has_many :wishes, foreign_key: :wisher_id, dependent: :destroy
+    has_many :wished_garments, through: :wishes, source: :wished_garment do
+      def filter_by_category_name(category_name)
+        joins(:categories).where("lower(categories.title) = ?", category_name.downcase).uniq
+      end
+    end
+  has_many :owns, foreign_key: "owner_id", dependent: :destroy
+    has_many :owned_garments, through: :owns, source: :owned_garment do
+      def filter_by_category_name(category_name)
+        joins(:categories).where("lower(categories.title) = ?", category_name.downcase).uniq
+      end
+    end
+
+  has_many :owned_brands, class_name: "Brand", foreign_key: "owner_id"
+  has_many :owned_blogs, class_name: "Blog", foreign_key: "owner_id"
+
+  has_many :admins_pages, class_name: "AdminsPages"
+    has_many :admined_brands, through: :admins_pages, source: :page, source_type: "Brand"
+    has_many :admined_blogs, through: :admins_pages, source: :page, source_type: "Blog"
+
+  has_many :garments, as: :creator
+  
+  has_many :connectors, as: :tagged
+    has_many :tagged_in_images, through: :connectors, source: :taggable, source_type: "Image"
+  
+  # validates_inclusion_of :gender, in: %w(male female)
+
+  serialize :profile_images_settings
+  serialize :profile_pictures_settings
+
+  def name
+    [first_name, last_name].reject(&:blank?).join(" ")
+  end
+
+  # update from OAuth
+  def update_from_oauth(auth, provider_type)
+    self.email = auth[:info][:email] if self.email.blank?
+    case provider_type
+    when :twitter
+      name = auth[:info][:name].split(' ')
+      self.first_name ||= name[0]
+      self.last_name ||= name[1]
+      self.remote_avatar_url = auth[:extra][:raw_info][:profile_image_url]
+      # if self.avatar.default?
+    when :facebook
+      self.first_name ||= auth[:info][:first_name]
+      self.last_name ||= auth[:info][:last_name]
+      self.remote_avatar_url = auth[:info][:image].gsub('http://','https://') + "?type=large"
+    when :google
+      name = auth[:info][:name].split(' ')
+      self.first_name ||= name[0]
+      self.last_name ||= name[1]
+      self.remote_avatar_url = auth[:info][:image].gsub(/(\?sz=.*)/,"")
+    end
+
+  end
+
+  def initialize_albums
+    Album.create(owner: self, title: 'My Photos')
+    Album.create(owner: self, title: 'Cover Photos')
+    Album.create(owner: self, title: 'Profile Photos')
+  end
+
+  def admins?(page, type)
+    if type == "Brand"
+      admined_brands.include?(page) ? true : false
+    elsif type == "Blog"
+      admined_blogs.include?(page) ? true : false
+    else
+      false
+    end
+  end
+
+  def admin?
+    true unless admins_pages.empty?
+  end
+
+  def my_photos
+    albums.find_by(title_slug: 'my_photos').try(:images)
+  end
+
+  def profile_photos
+    albums.find_by(title_slug: 'profile_photos').try(:images)
+  end
+
+  def closet_photos
+    # tagged_in_images.select{ |image| image.tagged_garments.include?(owned_garments) }
+    (images.to_a + tagged_in_images.to_a).flatten.compact.uniq.select{ |image| ((owned_garments.to_a.uniq & image.tagged_garments.to_a.uniq) != []) }
+  end
+
+  def url
+    Rails.application.routes.url_helpers.user_path(self)
+  end
+
+  mapping dynamic: 'false' do
+    indexes :id, type: 'integer', :index => 'no'
+    indexes :name, type: 'multi_field' do
+      indexes :name, analyzer: 'snowball'
+      indexes :tokenized, analyzer: 'simple'
+    end
+
+    indexes :country
+    indexes :about, :index => 'no'
+    indexes :suggest_username, type: 'completion', payloads: true
+  end
+
+  def as_indexed_json(options={})
+    {
+        name: name,
+        avatar: avatar_path,
+        cover: cover_path,
+        country: country,
+        about: about,
+        suggest_username: {
+          input: [
+            name,
+            sanitize_input(name)
+          ],
+          output: "#{id}:User:#{name}",
+          payload: {
+            id: id,
+            name: name,
+            url: url,
+            avatar: avatar_path
+          }
+        }
+    }
+  end
+
+  def as_json
+    {
+      name: name,
+      id: id,
+      avatar: avatar_path,
+      type: 'User'
+    }
+  end
+
+  def set_tags
+    self.tag_list = name.try{ |t| t.tr( ".?!@<>,[]=)(|*&^%$#~{}0123456789;:\"_+\\/-", "" )}.try(:downcase).try(:split).map(&:strip)
+  end
+
+  def self.search_results(q)
+    unless q.is_a?(Array)
+      q = q.tr( ".?!@<>,[]=)(|*&^%$#~{}0123456789;:\"_+\\/-", "" )
+      q = q.downcase.split.map(&:strip)
+    end
+    if q
+      self.tagged_with(q, :any => true)
+      # :wild => true
+    else
+      nil
+    end
+  end
+
+  # def self.search_results(q)
+  #   if q
+  #     q.tr!("'\"", "")
+  #     terms = q.split
+  #     user_query = terms.map { |term| "name LIKE '%#{term}%'" }.join(" OR ")
+  #     results = self.where(user_query)
+  #     arr_results = []
+  #     results.each do |result|
+  #       arr_results << result.as_json
+  #     end
+  #     arr_results.to_json
+  #   else
+  #     nil
+  #   end
+  # end
+
+end

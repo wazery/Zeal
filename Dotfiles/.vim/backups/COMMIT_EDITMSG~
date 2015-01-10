@@ -1,0 +1,31 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# Explicit paths specified without -i nor -o; assuming --only paths...
+# On branch master
+# Changes to be committed:
+#	modified:   app/views/pages/home.html.erb
+#
+# Untracked files:
+#	Guardfile
+#	app/views/dashboards/_header.html.erb
+#	app/views/dashboards/_sidebar.html.erb
+#	app/views/dashboards/members.html.erb
+#	bin/delayed_job
+#	html-mail-template.html
+#	public/excel_format 2.xls
+#	public/script.html
+#	server.csr
+#	server.key
+#	server.pass.key
+#	tags
+#	test/fixtures/feedbacks.yml
+#	test/fixtures/tokens.yml
+#	test/functional/
+#	test/mailers/company_mailer_test.rb
+#	test/mailers/survey_mailer_test.rb
+#	test/models/feedback_test.rb
+#	test/models/tokens_test.rb
+#	test/unit/
+#	vendor/assets/javascripts/dashboard/
+#

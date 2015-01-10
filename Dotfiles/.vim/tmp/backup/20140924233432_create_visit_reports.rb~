@@ -1,0 +1,40 @@
+class CreateVisitReports < ActiveRecord::Migration
+  def change
+    create_table :visit_reports do |t|
+      t.date :visit_date
+      t.integer :user_id
+      t.integer :farmer_id
+      t.integer :farm_id
+      t.text :other_comments
+      t.integer :livestock_head_id
+      t.integer :weight
+      t.string :bacteria
+      t.integer :daily_milk
+      t.integer :daily_milk_consumed_inhouse
+      t.integer :daily_milk_consumed_feeding
+      t.integer :daily_milk_sold
+      t.string :selling_unit
+      t.float :unit_price
+      t.string :breeding
+      t.integer :pregnancy_duration_months
+      t.date :breeding_date
+      t.date :last_delivery_date
+      t.text :changes_text
+      t.text :recommendation
+      t.string :daily_food
+      t.string :feeding_status
+      t.date :food_delivery_date
+      t.integer :supplementary_food
+      t.string :green_food_type
+      t.integer :yellow_food_weight
+      t.string :air_conditioning
+      t.string :solid_floor
+      t.string :unsolid_floor
+      t.string :water_supply
+      t.string :water_availability
+      t.string :other_animals_in_farm
+
+      t.timestamps
+    end
+  end
+end

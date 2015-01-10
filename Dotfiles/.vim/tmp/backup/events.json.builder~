@@ -1,0 +1,10 @@
+json.array!(@events) do |event|
+  json.events @events do |event|
+    json.event_type
+    json.id event.id
+    json.date event.date
+    json.result event.result
+    json.color 'red'
+    json.url event_url(event, format: :json)
+  end
+end

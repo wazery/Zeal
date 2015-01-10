@@ -1,0 +1,5 @@
+class RenameDateOfBirthFromLivestockHead < ActiveRecord::Migration
+  def change
+    rename_column :livestock_heads, :last_date_of_birth, :last_delivery_date
+  end
+end

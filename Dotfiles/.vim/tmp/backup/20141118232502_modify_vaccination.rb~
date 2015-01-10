@@ -1,0 +1,4 @@
+class ModifyVaccination < ActiveRecord::Migration
+  def change
+  end
+end

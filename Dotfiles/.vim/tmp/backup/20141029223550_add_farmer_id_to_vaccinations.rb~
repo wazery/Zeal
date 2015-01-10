@@ -1,0 +1,5 @@
+class AddFarmerIdToVaccinations < ActiveRecord::Migration
+  def change
+    add_column :vaccinations, :farmer_id, :integer
+  end
+end

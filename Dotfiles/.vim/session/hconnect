@@ -1,0 +1,60 @@
+let SessionLoad = 1
+if &cp | set nocp | endif
+let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
+let v:this_session=expand("<sfile>:p")
+silent only
+cd ~/
+if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
+  let s:wipebuf = bufnr('%')
+endif
+set shortmess=aoO
+badd +6 Sources/eleven/hconnect/app/controllers/pages_controller.rb
+badd +1 Sources/eleven/hconnect/app/views/devise
+badd +36 Sources/eleven/hconnect/app/views/devise/registrations/new.html.erb
+badd +18 Sources/eleven/hconnect/app/models/user.rb
+badd +1 Sources/eleven/hconnect/app/views/layouts/application.html.erb
+badd +1 Sources/eleven/hconnect/app/views/layouts/_navigation.html.erb
+badd +17 Sources/eleven/hconnect/app/views/layouts/_footer.html.erb
+badd +408 Sources/eleven/hconnect/app/assets/stylesheets/framework_and_overrides.css.scss
+badd +31 Sources/eleven/hconnect/app/controllers/admin/users_controller.rb
+badd +1 Sources/eleven/hconnect/app/controllers/admin/base_controller.rb
+badd +200 .vimrc
+argglobal
+silent! argdel *
+edit Sources/eleven/hconnect/app/controllers/admin/users_controller.rb
+set splitbelow splitright
+set nosplitbelow
+set nosplitright
+wincmd t
+set winheight=1 winwidth=1
+argglobal
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=0
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let s:l = 31 - ((19 * winheight(0) + 19) / 39)
+if s:l < 1 | let s:l = 1 | endif
+exe s:l
+normal! zt
+31
+normal! 04|
+lcd ~/
+tabnext 1
+if exists('s:wipebuf')
+  silent exe 'bwipe ' . s:wipebuf
+endif
+unlet! s:wipebuf
+set winheight=1 winwidth=20 shortmess=filnxtToO
+let s:sx = expand("<sfile>:p:r")."x.vim"
+if file_readable(s:sx)
+  exe "source " . fnameescape(s:sx)
+endif
+let &so = s:so_save | let &siso = s:siso_save
+doautoall SessionLoadPost
+unlet SessionLoad
+" vim: set ft=vim :

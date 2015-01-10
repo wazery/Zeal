@@ -1,0 +1,247 @@
+require 'rails_helper'
+
+RSpec.describe UsersController, type: :controller do
+  let(:user) { create(:user) }
+
+  before :each do
+    # reset_stubs
+    sign_in :user, user 
+  end
+
+  after :each do
+    # User.with_deleted.each { |u| u.really_destroy! }
+  end
+
+  after :all do
+    # reset_stubs
+  end
+
+  describe "GET index" do
+    it "responds successfully with an HTTP 200 status code" do
+      get :index
+      expect(response).to be_success
+      expect(response.status).to eq(200)
+    end
+
+    it "renders the index template" do
+      get :index
+      expect(response).to render_template :index
+    end
+  end
+
+  describe "GET show" do
+    context "when user is set" do
+      it "assigns the requested user as @user" do
+        get :show, id: user
+        expect(assigns(:user)).to eq(user)
+      end
+
+      it "renders the show template" do
+        get :show, id: user
+        expect(response).to render_template :show
+      end
+    end
+    
+    context "when user is not properly set" do
+      it "redirects to root url and alert a message" do
+        get :show, id: 900
+        expect(response).to redirect_to root_url
+        expect(flash[:alert]).to_not be_nil
+      end
+    end
+
+    let(:valid_attributes) do
+      {
+        first_name: "John",
+        last_name: "Doe",
+        email: "john@example.com",
+        gender: "male"
+      }
+    end
+
+    let(:invalid_attributes) do
+      {
+        email: "s"
+      }
+    end
+
+    describe "PUT update" do
+
+      context "when valid params" do
+        it "updates user attributes" do
+          put :update, id: user, user: valid_attributes
+          expect(assigns(:user)).to eq(user)
+        end
+
+        it "redirects to user show page with success notice message" do
+          sign_in user
+          put :update, id: user, user: valid_attributes
+          expect(response).to redirect_to user_path(user)
+          expect(flash[:notice]).to eq("Successfully edited your profile!")
+        end
+
+        context "when invalid params" do
+          it "redirects to user show page with alert message" do
+            sign_in user
+            put :update, id: user, user: invalid_attributes
+            expect(response).to redirect_to user_path(user)
+            expect(flash[:alert]).to eq("Something went wrong! Please try again..")
+          end
+        end
+      end
+
+      describe "#activites" do
+      end
+
+      describe "#closet" do
+        it "gets user owned garments" do
+          get :closet, { id: user, category: "Shirts" }
+          expect(subject.instance_variable_get('@garments')).to eq(user.owned_garments.filter_by_category_name("Shirts"))
+        end
+      end
+
+      describe "liked_garments" do
+        it "gets user's liked garments" do
+          get :liked_garments, { id: user }
+          expect(subject.instance_variable_get('@liked_garments')).to eq(user.liked_garments)
+        end
+      end
+
+      describe "#edit_profile_picture" do
+        before(:each) do
+          sign_in user
+          @attachment = ActionDispatch::Http::UploadedFile.new(tempfile: File.new("#{Rails.root}/spec/fixtures/testImage.jpg"), filename: "testImage.jpg")
+        end
+
+        context "when avatar param exists" do
+          xit "sets current user profile picture" do
+            post :edit_profile_picture, { id: user, avatar: @attachment }
+            profile_album = user.albums.find_by(title_slug: "profile_photos")
+            profile_image = Image.create(image: @attachment, album: profile_album, owner: user, uploader: user )
+            expect(subject.instance_variable_get('user')).to receive(:make_profile_picture).with(profile_image)
+          end
+
+          it "redirects to user show page" do
+            post :edit_profile_picture, { id: user, avatar: @attachment }
+            expect(response).to redirect_to user_path(user)
+            # expect(response.body).to eq(@user.avatar.url)
+          end
+        end
+
+        context "when avatar param doesn't exist" do
+          it "redirects to user show page" do
+            post :edit_profile_picture, { id: user }
+            expect(response).to redirect_to user_path(user)
+            # expect(response.body).to eq(@user.avatar.url)
+          end
+        end
+                                 
+      end
+
+       describe "#edit_profile_cover" do
+        before(:each) do
+          sign_in user
+          @attachment = ActionDispatch::Http::UploadedFile.new(tempfile: File.new("#{Rails.root}/spec/fixtures/testImage.jpg"), filename: "testImage.jpg")
+        end
+
+        context "when avatar param exists" do
+          xit "sets current user cover picture" do
+            post :edit_profile_cover, { id: user, avatar: @attachment }
+            cover_album = user.albums.find_by(title_slug: "profile_photos")
+            cover_image = Image.create(image: @attachment, album: cover_album, owner: user, uploader: user )
+            expect(subject.instance_variable_get('user')).to receive(:make_cover_picture).with(cover_image)
+          end
+
+          it "redirects to user show page" do
+            post :edit_profile_cover, { id: user, avatar: @attachment }
+            expect(response).to redirect_to user_path(user)
+            # expect(response.body).to eq(@user.cover.url)
+          end
+        end
+
+        context "when avatar param doesn't exist" do
+          it "redirects to user show page" do
+            post :edit_profile_cover, { id: user }
+            expect(response).to redirect_to user_path(user)
+            # expect(response.body).to eq(@user.cover.url)
+          end
+        end
+                                 
+      end
+      
+      describe "#switch_identity" do
+        it "switches identity" do
+          get :switch_identity, { id: user }
+          expect(response).to redirect_to root_url
+          expect(flash[:notice]).to eq("Successfully switched back to your account!")
+        end
+      end
+
+      describe "#closet_photos" do
+        it "gets user closet photos" do
+          get :closet_photos, { id: user }
+          expect(subject.instance_variable_get('@closet_photos')).to eq(user.closet_photos)
+        end
+      end
+
+      describe "#my_photos" do
+        it "gets user photos" do
+          get :my_photos, { id: user }
+          expect(subject.instance_variable_get('@my_photos')).to eq(user.my_photos)
+        end
+       end
+
+       describe "#profile_photos" do
+         it "gets user profile photos" do
+           get :profile_photos, { id: user }
+           expect(subject.instance_variable_get('@profile_photos')).to eq(user.profile_photos)
+         end
+       end
+
+       describe "#tagged_photos" do
+         it "gets user tagged photos" do
+           get :tagged_photos, { id: user }
+           expect(subject.instance_variable_get('@tagged_photos')).to eq(user.tagged_in_images)
+         end
+       end
+
+       describe "#change_country" do
+
+         context "when valid country and state" do
+           xit "updates user country" do
+             expect(subject.instance_variable_get('user')).to receive(:update_attribute).with(:country_id,  1)
+             post :change_country, { id: user, country: "Afghanistan", state: "Badghis"}
+           end
+
+           xit "updates user's state" do
+             expect(user).to receive(:update_attribute).with(:state, "Badghis")
+             post :change_country, { id: user, country: "Afghanistan", state: "Badghis"}
+           end
+       end
+
+       context "when invalid country and state" do
+          xit "don't update user country" do
+            put :change_country, { id: user, country: -1}
+          end
+        end
+
+        xit "redirects to user show page" do
+          expect(response).to redirect_to user_path(user)
+        end 
+      end
+
+      describe "wishes" do
+        
+        it "gets user's wished garments if no filter" do
+          get :wishes, { id: user, category: "all" }
+          expect(subject.instance_variable_get('@garments')).to eq(user.wished_garments)
+        end
+
+        it "gets user's wished garments filtered by category" do
+          get :wishes, { id: user, category: "Shirts" }
+          expect(subject.instance_variable_get('@garments')).to eq(user.wished_garments.filter_by_category_name("Shirts"))
+        end
+      end
+    end
+  end
+end

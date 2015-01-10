@@ -1,0 +1,13 @@
+class CreateLivestockHeads < ActiveRecord::Migration
+  def change
+    create_table :livestock_heads do |t|
+      t.string :id_number
+      t.references :LivestockType, index: true
+      t.references :Breed, index: true
+      t.date :date_of_birth
+      t.string :insurance_status
+
+      t.timestamps
+    end
+  end
+end

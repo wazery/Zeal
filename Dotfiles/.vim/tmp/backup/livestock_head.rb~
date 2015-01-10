@@ -1,0 +1,35 @@
+class LivestockHead < ActiveRecord::Base
+  require 'csv'
+  require 'exceptions'
+
+  belongs_to :livestock_type
+  belongs_to :pedigree
+  belongs_to :farmer
+  has_many :vaccinations
+  has_many :vaccines, through: :vaccination
+  has_many :livestock_events
+
+  has_many :childs, class_name: "LivestockHead", foreign_key: "parent_id"
+  belongs_to :parent, class_name: "LivestockHead"
+
+  # Validations
+  validates :id_number, :livestock_type_id, :pedigree_id, :date_of_birth, :insurance_status, :farmer_id, presence: { message: 'This field is not optional' }
+
+  validates :livestock_type, presence: { message: 'Please make sure you entered a correct livestock type id' }
+  validates :pedigree, presence: { message: 'Please make sure you entered a correct pedigree id' }
+
+  def self.import file
+    raise Exceptions::NotCSVError if file.content_type != 'text/csv'
+    errors = %w()
+
+    CSV.foreach(file.path, headers: true) do |row|
+      head = where(id_number: row.to_hash['id_number']).first
+      if head
+        errors << "row ##{$.} exists, please check it in the CSV file"
+        next
+      end
+      create!(row.to_hash) unless head
+    end
+    errors
+  end
+end

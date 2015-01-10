@@ -1,0 +1,8 @@
+class AddSignatureFieldsToIncidents < ActiveRecord::Migration
+  def change
+    add_column :incidents, :crew_signature, :text, default: "[]"
+    add_column :incidents, :approved_by_signature, :text, default: "[]"
+    add_column :incidents, :crew_signed_date, :datetime
+    add_column :incidents, :approved_by_signed_date, :datetime
+  end
+end

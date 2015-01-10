@@ -1,0 +1,83 @@
+class LivestockEventsController < ApplicationController
+  before_action :set_livestock_event, only: [:show, :edit, :update, :destroy]
+
+  # GET /livestock_events
+  # GET /livestock_events.json
+  def index
+    @livestock_events = LivestockEvent.all
+  end
+
+  # GET /livestock_events/1
+  # GET /livestock_events/1.json
+  def show
+  end
+
+  # GET /livestock_events/new
+  def new
+    @livestock_event = LivestockEvent.new
+  end
+
+  # GET /livestock_events/1/edit
+  def edit
+  end
+
+  # POST /livestock_events
+  # POST /livestock_events.json
+  def create
+    @livestock_event = LivestockEvent.new(livestock_event_params)
+
+    respond_to do |format|
+      if @livestock_event.save
+        format.html { redirect_to @livestock_event, notice: 'Livestock event was successfully created.' }
+        format.json { render :show, status: :created, location: @livestock_event }
+      else
+        format.html { render :new }
+        format.json { render json: @livestock_event.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /livestock_events/1
+  # PATCH/PUT /livestock_events/1.json
+  def update
+    respond_to do |format|
+      if @livestock_event.update(livestock_event_params)
+        format.html { redirect_to @livestock_event, notice: 'Livestock event was successfully updated.' }
+        format.json { render :show, status: :ok, location: @livestock_event }
+      else
+        format.html { render :edit }
+        format.json { render json: @livestock_event.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /livestock_events/1
+  # DELETE /livestock_events/1.json
+  def destroy
+    @livestock_event.destroy
+    respond_to do |format|
+      format.html { redirect_to livestock_events_url, notice: 'Livestock event was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  # GET /livestock_events/events
+  def events
+    @events = LivestockEvent.all
+    respond_to do |format|
+      format.html { redirect_to livestock_events_url, notice: 'Not accessable' }
+      format.json { render json: @events }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_livestock_event
+      @livestock_event = LivestockEvent.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def livestock_event_params
+      params.require(:livestock_event).permit(:livestock_head_id, :event_type, :date, :result)
+    end
+end

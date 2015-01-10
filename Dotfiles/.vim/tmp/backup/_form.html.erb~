@@ -1,0 +1,58 @@
+<%= simple_form_for(@livestock_head) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="form-inputs">
+    <%= f.input :id_number %>
+
+    <div class="form-group">
+      <%= f.label :livestock_type_id %>
+      <div class="row">
+        <div class="col-sm-6">
+          <%= f.select :livestock_type_id, options_for_select(LivestockType.all.collect { |type| [type.lifestock_type.titleize, type.id] }, :selected => f.object.livestock_type_id), {} %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :pedigree_id %>
+      <div class="row">
+        <div class="col-sm-6">
+          <%= f.select :pedigree_id, options_for_select(Pedigree.all.collect { |pedigree| [pedigree.pedigree.titleize, pedigree.id] }, :selected => f.object.pedigree_id), {} %>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :parent_id %>
+      <div class="row">
+        <div class="col-sm-6">
+          <%= f.select :parent_id, options_from_collection_for_select(LivestockHead.where.not(id: f.object.id), 'id', 'id_number', :selected => f.object.parent_id), :include_blank => true %> 
+        </div>
+      </div>
+    </div>
+     
+    <div class="form-group">
+      <%= f.label :last_date_of_birth %>
+      <div class="row">
+        <div class="col-sm-6">
+          <%= f.date_field :last_date_of_birth, id: 'datepicker', class: 'hasDatepicker' %>
+        </div>
+      </div>
+    </div>
+
+    <%= f.input :insurance_status, collection: [:Yes, :No]%>
+    <div class="form-group">
+      <%= f.label :farmer %>
+      <div class="row">
+        <div class="col-sm-6">
+          <%= f.select :farmer_id, Farmer.all.collect {|x| [x.full_name, x.id]}, {} %>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="form-actions">
+    <%= f.button :submit %>
+  </div>
+<% end %>

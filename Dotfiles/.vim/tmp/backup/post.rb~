@@ -1,0 +1,141 @@
+class Post < ActiveRecord::Base
+  include Tekeya::Feed::Attachable
+  include Shareable
+  include Deleteable
+  # acts_as_taggable # Alias for acts_as_taggable_on :tags
+
+  # validates :caption, presence: true
+
+  has_many :likes, as: :likeable, dependent: :destroy
+    has_many :users_likers, through: :likes, source: :liker, source_type: "User"
+    has_many :brands_likers, through: :likes, source: :liker, source_type: "Brand"
+    has_many :blogs_likers, through: :likes, source: :liker, source_type: "Blog"
+    def likers
+      all_likers = []
+      likes.each do |like|
+        begin
+          all_likers << like.liker_type.safe_constantize.find(like.liker_id)
+        rescue
+          nil
+        end
+      end
+      return all_likers.compact
+    end
+  has_many :comments, as: :commentable, dependent: :destroy
+  
+  has_one :post_attachment
+  
+  has_many :images, as: :attachable, dependent: :destroy
+    # validates_presence_of :images, :if => :no_post_attachments?
+  has_one :cover_image, class_name: "Image", as: :attachable_cover
+  
+  belongs_to :owner, polymorphic: true
+  belongs_to :poster, polymorphic: true
+
+  def no_post_attachments?
+    if post_attachment || remote_url
+      false
+    else
+      true
+    end
+  end
+  
+  # def type
+  #   if owner_type == "Brand"
+  #     poster.admins?(owner) ? "admin_to_page" : "user_to_page"
+  #   else
+  #     if poster == owner
+  #       "user_to_own"
+  #     else
+  #       "user_to_user"
+  #     end
+  #   end
+  # end
+
+  def can_be_viewed_by?(entity)
+    activity = attachments.first.attache
+    activity.privacy_setting.can_see_future_activities?(entity)
+  end 
+  #TODO create custom callback for hide and unhide to delete the post from elasticsearch index
+  def hide
+    return if hidden
+    update_attribute(:hidden, true)
+  end 
+
+  def unhide
+    return unless hidden
+    update_attribute(:hidden, false)
+  end
+
+  def tags_names
+    tag_list.join(", ")
+  end 
+
+  def next
+    posts = Post.find_by(owner: self.owner)
+    nexter = Nexter.wrap(posts, post)
+    nexter.next
+  end
+
+  def prev
+    posts = Post.find_by(owner: self.owner)
+    nexter = Nexter.wrap(posts, post)
+    nexter.previous
+  end
+
+  def self.get_data(url)
+    agent = Mechanize.new
+    begin
+      page = agent.get(url)
+      if page
+        title = nil
+        description = nil
+        image_url = nil
+
+        if page.at("title")
+          title = page.at("title").text
+        elsif page.at('meta[itemprop="name"]')
+          title = page.at('meta[itemprop="name"]')[:content]
+        elsif page.('meta[property="og:title"]')
+          title = page.('meta[property="og:title"]')[:content]
+        elsif page.at('meta[name="twitter:title"]')
+          title = page.at('meta[name="twitter:title"]')[:content]
+        end
+
+        if page.at('meta[name="description"]')
+          description = page.at('meta[name="description"]')[:content]
+        elsif page.at('meta[itemprop="description"]')
+          description = page.at('meta[itemprop="description"]')[:content]
+        elsif page.at('meta[property="og:description"]')
+          description = page.at('meta[property="og:description"]')[:content]
+        elsif page.at('meta[name="twitter:description"]')
+          description = page.at('meta[name="twitter:description"]')[:content]
+        end
+          
+        img_src = page.parser.css("head link").select{ |u| u[:rel] == "image_src"}.first
+        if img_src
+          image_url = img_src[:href]
+        elsif page.at('meta[itemprop="image"]')
+          image_url = page.at('meta[itemprop="image"]')[:content]
+        elsif page.at('meta[property="og:image"]')
+          image_url = page.at('meta[property="og:image"]')[:content]
+        elsif page.at('meta[name="twitter:image"]')
+          image_url = page.at('meta[name="twitter:image"]')[:content]
+        elsif page.images.try(:first)
+          image_url = page.images.first.src
+        end
+
+        if title
+          return {url: url, title: title, description: description, image: image_url}
+        else
+          return {error: "Couldn't find title or description"}
+        end
+      else
+        return {error: "Couldn't connect to url"}
+      end
+    rescue Exception
+      return {error: "Couldn't connect to url"}
+    end
+  end
+
+end

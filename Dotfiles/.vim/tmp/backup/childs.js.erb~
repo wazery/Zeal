@@ -1,0 +1,4 @@
+
+
+$(".child").html("<ul><% @childs.each do |child| %><li><strong>ID Number:</strong> <%= child.id_number %>, <strong>Pedigree:</strong> <%= child.pedigree %></li><% end %></ul>");
+

@@ -1,0 +1,6 @@
+<h1>Editing livestock_event</h1>
+
+<%= render 'form' %>
+
+<%= link_to 'Show', @livestock_event %> |
+<%= link_to 'Back', livestock_events_path %>

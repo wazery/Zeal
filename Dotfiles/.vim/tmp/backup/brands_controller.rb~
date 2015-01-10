@@ -1,0 +1,195 @@
+class BrandsController < ApplicationController
+  before_action :require_login, except: [:show]
+  before_action :prepare_brand, except: [:index, :new, :create, :edit_profile_cover, :edit_profile_picture]
+  before_action :require_owner_authority, only: [:settings, :update, :delete]
+
+  def index
+    @brands = Brand.all
+  end
+
+  def show
+    @profile_feeds = @brand.profile_feed{}.first(10).map{|f| f if confirm_feed(f)}.compact.first(4)
+  end
+
+  def activities
+    params[:page] ||= 1
+    @profile_feeds = @brand.profile_feed(params[:page], 16){}.map{|f| f if confirm_feed(f)}.compact
+    @feeds_next_page = (@profile_feeds.empty? ? nil : ((params[:page].to_i+1).to_s))
+    # (@feeds_next_page = next_page) unless current_user.feed(next_page, 16){}.empty?
+    # all_feeds = @brand.profile_feed {|f| f}.map{|f| f if confirm_feed(f)}.compact
+    # if all_feeds.kind_of?(Array)
+    #   params[:page] ||= 1
+    #   @profile_feeds = all_feeds.paginate(:page => params[:page], :per_page => 12)
+    # else
+    # @profile_feeds = all_feeds
+    # end
+  end
+
+  def switch_identity
+    if switch_to(@brand, "Brand")
+      redirect_to @brand, notice: "Successfully logged in as the brand!"
+    else
+      redirect_to root_url, alert: "You must be an admin for this brand!"
+    end
+  end
+
+  def new
+  end
+
+  def create
+    @brand = Brand.new(params[:brand].permit!)
+    @brand.owner = current_user
+    if @brand.save
+      redirect_to @brand, notice: "Successfully added your brand!"
+    else
+      redirect_to root_url, notice: "Something went wrong! Please try again.."
+    end
+  end
+
+  def collections
+    @uncategorized_collection = @brand.garments.uncategorized
+    @collections = @brand.collections
+  end
+
+  def general_collection
+    @uncategorized_collection = @brand.garments.uncategorized
+  end
+
+  def garments
+    params[:page] ||= 1
+    @garments = @brand.garments.paginate(:page => params[:page], :per_page => 16)
+  end
+
+  def settings
+  end
+
+  def update
+    if @brand.update_attributes(params[:brand].permit!)
+      if params[:cover_image]
+        cover_album = @brand.albums.find_by(title_slug: "cover_photos")
+        unless cover_album
+          @brand.initialize_albums
+          cover_album = @brand.albums.find_by(title_slug: "cover_photos")
+        end
+        cover_image = Image.create(image: params[:cover_image], album: cover_album, owner: current_page, uploader: current_user)
+        if cover_image
+          @brand.make_cover_picture(cover_image) 
+          current_brand.activities.changed_cover_picture(cover_image, {group: false})
+        end
+      end
+      if params[:avatar_image]
+        profile_album = @brand.albums.find_by(title_slug: "profile_photos")
+        unless profile_album
+          @brand.initialize_albums
+          profile_album = @brand.albums.find_by(title_slug: "profile_photos")
+        end
+        profile_image = Image.create(image: params[:avatar_image], album: profile_album, owner: current_page, uploader: current_user)
+        if profile_image
+          @brand.make_profile_picture(profile_image)
+          current_brand.activities.changed_profile_picture(profile_image, {group: false})
+        end
+      end
+      redirect_to @brand, notice: "Successfully updated settings!"
+    else
+      redirect_to @brand, alert: "Something went wrong! Please try again.."
+    end
+  end
+
+  def delete
+    if @brand.destroy
+      redirect_to @brand, notice: "Deleted the brand!"
+    else
+      redirect_to @brand, alert: "Something went wrong! Please try again.."
+    end
+  end
+
+  ### albums
+  def main_albums
+    # @albums = @user.albums.select{|album| (album.title_slug != "my_photos" || album.title_slug != "profile_photos") }
+  end
+
+  def my_photos
+    @my_photos = @brand.my_photos
+  end
+
+  def profile_photos
+    @profile_photos = @brand.profile_photos
+  end
+
+  def tagged_photos
+    @tagged_photos = @brand.tagged_in_images
+  end
+
+  def edit_profile_cover
+    @brand = current_brand
+    if @brand
+      if params[:cover_photo].present?
+        cover_album = @brand.albums.find_by(title_slug: "cover_photos")
+        unless cover_album
+          @brand.initialize_albums
+        end
+        cover_image = Image.create(image: params[:cover_photo], album: cover_album, owner: @brand, uploader: current_user)
+        old_cover_image = @brand.images.find_by(profile: true)
+        item_id = old_cover_image.try(:id)
+        item_class = old_cover_image.class.to_s
+        ::Tekeya::Activity.joins(:attachments).where("attachments.attachable_id = ? AND attachments.attachable_type = ? AND activity_type = ?", item_id, item_class, "changed_cover_picture").map(&:delete)
+        @brand.make_cover_picture(cover_image)
+        @brand.activities.changed_cover_picture(cover_image, {group: false})
+      end
+      params_hash = {
+        position_mobile: params['position-mobile'],
+        position_desktop: params['position-desktop'],
+        cover: params[:cover] == "1" ? true : false,
+        full: params[:full] == "1" ? true : false
+      }
+      @brand.profile_images_settings = params_hash
+      @brand.save!
+      respond_to do |format|
+        format.html {redirect_to @brand}
+        format.js {render nothing: true}
+        format.json {render json: {cover: @brand.cover.url}}
+      end 
+    end
+  end
+
+  def edit_profile_picture
+    @brand = current_brand
+    if params[:avatar_image]
+      profile_album = @brand.albums.find_by(title_slug: "profile_photos")
+      unless profile_album
+        @brand.initialize_albums
+        profile_album = @brand.albums.find_by(title_slug: "profile_photos")
+      end
+      profile_image = Image.create(image: params[:avatar_image], album: profile_album, owner: current_page, uploader: current_user)
+      if profile_image
+
+        old_porfile_image = @brand.images.find_by(profile: true)
+        item_id = old_porfile_image.try(:id)
+        item_class = old_porfile_image.class.to_s
+        ::Tekeya::Activity.joins(:attachments).where("attachments.attachable_id = ? AND attachments.attachable_type = ? AND activity_type = ?", item_id, item_class, "changed_cover_picture").map(&:delete)
+
+        @brand.make_profile_picture(profile_image)
+        @brand.activities.changed_profile_picture(profile_image, {group: false})
+      end
+    end
+    respond_to do |format|
+      format.html {redirect_to @brand, notice: "successfully updated profile picture!"}
+      format.json {render json: {avatar: @brand.avatar.thumb.url}}
+    end
+  end
+
+private
+
+  def prepare_brand
+    @brand = Brand.find_by(id: params[:id])
+    unless @brand
+      redirect_to root_url, alert: "Something went wrong! Please try again.."
+    end
+  end
+  
+  def require_owner_authority
+    unless (@brand == current_entity)
+      redirect_to @brand, alert: "You can not edit this brand.. You must switch to the brand first!"
+    end
+  end
+end

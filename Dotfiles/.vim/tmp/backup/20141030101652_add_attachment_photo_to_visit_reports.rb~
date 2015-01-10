@@ -1,0 +1,11 @@
+class AddAttachmentPhotoToVisitReports < ActiveRecord::Migration
+  def self.up
+    change_table :visit_reports do |t|
+      t.attachment :photo
+    end
+  end
+
+  def self.down
+    remove_attachment :visit_reports, :photo
+  end
+end

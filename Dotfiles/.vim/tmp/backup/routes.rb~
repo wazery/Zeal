@@ -1,0 +1,196 @@
+Slickr::Application.routes.draw do
+  require 'resque/server'
+
+  devise_for :users, :controllers => { omniauth_callbacks: 'users/omniauth_callbacks', :registrations => 'registrations' }
+  devise_for :slickr_admins, ActiveAdmin::Devise.config
+  ActiveAdmin.routes(self)
+  mount Resque::Server.new, at: "/resque"
+
+  namespace :admin do
+    resources :posts do
+      member do
+        get :hide
+        get :unhide
+      end
+    end
+
+    resources :users do
+      member do
+        get :ban
+        get :unban
+      end
+    end
+
+    resources :brands do
+      member do
+        get :ban
+        get :unban
+      end
+    end
+  end
+  # You can have the root of your site routed with "root"
+  resources :home, only: [:index] do
+    collection do
+      get :intro
+    end
+  end
+
+  #TODO: Refactor this
+  get 'usearch',to: 'search#search_users'
+  get 'gsearch',to: 'search#search_garments'
+  get 'search',to: 'search#index'
+  get 'mentions', to: 'search#mentions'
+  get 'suggest',to: 'search#suggest'
+  root 'home#index'
+
+  devise_scope :user do
+    get 'now', to: 'devise/sessions#new'
+  end
+  get 'intro', to: 'home#intro'
+
+  resources :users, only: [:index, :show, :update] do
+    member do
+      get :activities
+      get :settings
+      get :wishes
+      get :closet
+      get :liked_garments
+      get :main_albums
+      get :closet_photos
+      get :liked_photos
+      get :my_photos
+      get :profile_photos
+      get :tagged_photos
+      post :change_country
+      post :edit_profile_cover
+      post :edit_profile_picture
+    end
+    collection do
+      post :switch_identity
+    end
+  end
+
+  resources :tracks do
+    collection do
+      get :trackers
+      get :trackings
+      get :network
+      post :track
+      post :untrack
+    end
+  end
+
+  resources :blogs do
+    member do
+      get :activities
+      post :refetch
+      post :switch_identity
+      post :settings
+      post :edit_profile_cover
+      post :edit_profile_picture
+    end
+  end
+
+  resources :posts do
+    member do
+      get :show_modal
+    end
+    collection do
+      delete :delete_feed
+      get :new_modal
+      post :check_data
+    end
+  end
+
+  resources :likes, only: [:index, :create, :destroy] do
+    collection do
+      get :likes
+    end
+  end
+
+  resources :comments, only: [:create, :destroy]
+
+  resources :images do
+    collection do
+      post :upload
+    end
+    member do
+      post :add_tag
+      post :remove_tag
+      get :show_modal
+      post :edit_tags
+    end
+  end
+
+  resources :garments do
+    member do
+      post :add_images
+      post :wish
+      post :own
+      post :buy
+      get  :show_modal
+    end
+    collection do
+      get :new_modal
+    end
+  end
+
+  resources :albums do
+    member do
+      post :add_images
+    end
+    collection do
+      get :new_modal
+      get :main
+    end
+  end
+
+  resources :brands do
+    member do
+      get :activities
+      # post :refetch
+      post :switch_identity
+      get :settings
+      get :collections
+      get :general_collection
+      get :garments
+      get :main_albums
+      get :my_photos
+      get :profile_photos
+      get :tagged_photos
+      post :edit_profile_cover
+      post :edit_profile_picture
+    end
+  end
+
+  resources :collections do
+    collection do
+      get :new_modal
+    end
+  end
+
+  resources :social_providers do
+    member do
+      post :post_on_fb
+      post :tweet
+      post :revoke
+    end
+  end
+
+  resources :notifications, only: [:index] do
+    post :read_all, on: :collection
+    get :load_more, on: :collection
+  end
+
+  resources :shares, only: [:create] do
+    collection do
+      get :new_modal
+    end
+  end
+
+  resources :early_subscribers, only: [:create] do
+    collection do
+      get :now
+    end
+  end
+end

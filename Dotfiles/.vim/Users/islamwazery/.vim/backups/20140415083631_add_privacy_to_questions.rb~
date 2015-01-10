@@ -1,0 +1,5 @@
+class AddPrivacyToQuestions < ActiveRecord::Migration
+  def change
+    add_column :questions, :privacy, :boolean
+  end
+end

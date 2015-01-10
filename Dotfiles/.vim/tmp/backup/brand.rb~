@@ -1,0 +1,256 @@
+class Brand < ActiveRecord::Base
+  include Tekeya::Entity::Group
+  include SearchableEntity
+  include SocialOwnership
+  include EntityMainImages
+  include Shareable
+  before_save :set_tags
+  acts_as_taggable # Alias for acts_as_taggable_on :tags
+  after_create :initialize_albums, :owner_to_admin
+
+  validates :name, uniqueness: true
+  validates :name, length: { minimum: 2 }
+  belongs_to :country
+  has_many :admins_pages, class_name: "AdminsPages", as: :page
+    has_many :admins, through: :admins_pages, source: :user
+  belongs_to :owner, class_name: "User"
+    validates_presence_of :owner
+  has_many :collections
+  has_many :garments, dependent: :destroy do
+    def uncategorized
+      self.where(collection_id: nil)
+    end
+  end
+
+  has_many :connectors, as: :tagged
+    has_many :tagged_in_images, through: :connectors, source: :taggable, source_type: "Image"
+
+  serialize :profile_images_settings
+  serialize :profile_pictures_settings
+
+  def owner_to_admin
+    self.admins << self.owner
+    self.save
+  end
+
+  def recent_images
+    imgs = garments.limit(4).map{ |garment| 
+        if garment.try(:cover_image).try(:image).try(:url)
+          garment.cover_image.image.medium.url 
+        elsif garment.images.try(:last).try(:image).try(:url)
+          garment.images.last.image.medium.url
+        end
+      }
+    # (15-imgs.size).times { imgs << "backgrounds/blur-#{rand(1..10)}.jpg" }
+    imgs
+  end
+
+  def ban
+    return if banned
+    update_attribute(:banned, true)
+  end
+  
+  def unban
+    return unless banned
+    update_attribute(:banned, false)
+  end
+
+  mapping dynamic: 'false' do
+    indexes :id, type: 'integer', :index => 'no'
+    indexes :name, type: 'multi_field' do
+      indexes :name, analyzer: 'snowball'
+      indexes :tokenized, analyzer: 'simple'
+    end  
+    indexes :suggest_brandname, type: 'completion', payloads: true
+  end
+
+
+  def as_indexed_json(options={})
+    {
+        name: name,
+        avatar: avatar_path,
+        cover: cover_path,
+        suggest_brandname: {
+          input: [
+            name,
+            sanitize_input(name)
+          ],
+          output: "#{id}:Brand:#{name}",
+          payload: {
+            id: id,
+            name: name,
+            url: url,
+            avatar: avatar_path
+          }
+        }
+    }
+  end
+
+  def as_json
+    {
+      name: name,
+      id: id,
+      avatar: avatar_path,
+      type: 'Brand'
+    }
+  end
+
+  def url
+    Rails.application.routes.url_helpers.brand_path(self)
+  end
+  
+  def my_photos
+    albums.find_by(title_slug: 'my_photos').try(:images)
+  end
+
+  def profile_photos
+    albums.find_by(title_slug: 'profile_photos').try(:images)
+  end
+
+  def crawl_hm_starter
+    Resque.enqueue(BrandCrawler, self.id)
+  end
+
+  def crawl_hm
+    if self.name == "HM"
+      # connecting with HM website using Mechanize
+      agent = Mechanize.new
+      page = agent.get('http://www.hm.com/eg/')
+
+      #if the page got successfully fetched
+      if page
+        #fetching the pages of gender categories Ladies/ Men/ Kids
+        gender_categories = []
+        ladies = page.link_with(:text => 'Ladies')
+        gender_categories << ladies if ladies
+        men = page.link_with(:text => 'Men')
+        gender_categories << men if men
+        kids = page.link_with(:text => 'Kids')
+        gender_categories << kids if kids
+        # gender_categories = [ladies, men, kids]
+
+        col = agent.get("http://www.hm.com/eg/subdepartment/LADIES").search(".dimension.colour.wide ul li").map{|c| c.text.strip.downcase}
+        #crawling through those gender categories
+        gender_categories.each do |gender_category|
+
+          gender_category_title = gender_category.text.strip
+          # unless gender_category
+          #   Category.create(title: gender_category.text.strip)
+          # end
+          #fetching the current gender page
+          gender_category_page = gender_category.click
+          #get all subcategories
+          upper_categories = gender_category_page.search("li.folded")
+          #get each category information
+          upper_categories.each do |upper_category|
+            #get category title
+            upper_category_title = upper_category.children[1].children.text
+            #get category url
+            upper_category_url = upper_category.children[1]["href"]
+            # .attributes.to_a.first.last.value
+            #fetch the current category page eg: "Tops"
+            upper_category_page = agent.get(upper_category_url)
+   
+            #if that upper categroy page got successfully fetched
+            if upper_category_page
+              print "Upper Category:: #{upper_category_title} \n"
+              upper_category_selected = upper_category_page.search("li.unfolded")
+              upper_category_selected.children[3].children.each do |sub_category|
+                sub_cateogry_title = sub_category.text.gsub(/\s+/, ' ').strip
+                if sub_cateogry_title == "H&M+ Plus Sizes"
+                  sub_cateogry_title = "Plus Sizes"
+                end
+                if ((sub_cateogry_title != "") && (sub_cateogry_title != "View all"))
+                  print "\t Sub Category from #{upper_category_title}:: #{sub_cateogry_title} \n"
+
+                  # create categories
+                  type_category = Category.create_from_list([sub_cateogry_title, [upper_category_title, [gender_category_title]]])
+                  type_category.update_attribute(:category_set, CategorySet.type_categories)
+
+                  sub_category_url = sub_category.children[1]["href"]
+                  # .attributes.to_a.first.last.value
+                  #fetch the final subcategory
+                  sub_category_page = agent.get(sub_category_url)
+                  #if that final subcategroy page got successfully fetched
+                  if sub_category_page
+                    pages = []
+                    #get all pagination links except the arrow indicating next
+                    sub_category_page.search("ul.pages.top li a")[0...-1].each do |page_link|
+                      pages << sub_category_url.split("?")[0]+page_link["href"]
+                    end
+                    #parse the first page
+                    print "\t \t >>> Exploring Page 1 Of #{upper_category_title} / #{sub_cateogry_title} \n"
+                    sub_category_page.search("ul#list-products li div a").each do |product|
+                      product_page_url = product["href"]
+                      product_page = agent.get(product_page_url)
+                      if product_page
+                        product = Garment.prepare_product_hm(product_page, product_page_url, col)
+                        unless Garment.find_by(:remote_id, product[:id]).present?
+                          Garment.print_product(product)
+                          garment = Garment.create_from_hash(product, type_category)
+                          garment.brand = self
+                          if garment.save
+                            self.activities.created_a_new_garment(garment, group: false)
+                          end
+                        end
+                      else
+                        false
+                      end
+                    end
+                    #fetching paginated pages
+                    pages.each_with_index do |page, index|
+                      current_paginated_page = agent.get(page)
+                      if current_paginated_page
+                        print "\t \t >>> Exploring Page #{index+2} Of #{upper_category_title} / #{sub_cateogry_title} \n"
+                        current_paginated_page.search("ul#list-products li div a").each do |product|
+                          product_page_url = product["href"]
+                          product_page = agent.get(product_page_url)
+                          if product_page
+                            product = Garment.prepare_product_hm(product_page, product_page_url, col)
+                            unless Garment.find_by(:remote_id, product[:id]).present?
+                              Garment.print_product(product)
+                              garment = Garment.create_from_hash(product, type_category)
+                              garment.brand = self
+                              if garment.save
+                                self.activities.created_a_new_garment(garment, group_with_recent: false)
+                              end
+                            end
+                          else
+                            false
+                          end
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            else
+              false
+            end
+          end
+        end
+      else
+        false
+      end
+    else
+      false
+    end
+  end
+
+  def set_tags
+    self.tag_list = name.try{ |t| t.tr( ".?!@<>,[]=)(|*&^%$#~{}0123456789;:\"_+\\/-", "" )}.try(:downcase).try(:split).map(&:strip)
+  end
+
+  def self.search_results(q)
+    unless q.is_a?(Array)
+      q = q.tr( ".?!@<>,[]=)(|*&^%$#~{}0123456789;:\"_+\\/-", "" )
+      q = q.downcase.split.map(&:strip)
+    end
+    if q
+      self.tagged_with(q, :any => true)
+    else
+      nil
+    end
+  end
+
+end

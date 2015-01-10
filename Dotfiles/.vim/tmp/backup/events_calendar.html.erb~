@@ -1,0 +1,23 @@
+<p>
+  <%= link_to 'Add upcoming visit event', new_upcoming_visit_report_path %>
+</p>
+
+<div id='calendar'></div>
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+    $('#calendar').fullCalendar({
+      eventSources: [
+        // your event source
+        {
+          url: '/visit_reports/events.json', 
+          color: 'red',
+          textColor: 'black',
+          error: function() {
+            alert('there was an error while fetching events!');
+          }
+        }
+      ]
+    });
+  });
+</script>

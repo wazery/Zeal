@@ -1,0 +1,105 @@
+source 'https://rubygems.org'
+
+# Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
+gem 'rails', '4.0.4'
+gem 'tekeya', github: 'slickr/tekeya', ref: '4ecaf26'
+gem 'mysql2'
+gem 'devise'
+gem 'dynamic_form'
+# gem 'devise_invitable'
+gem 'omniauth'
+gem 'omniauth-facebook'
+gem 'omniauth-twitter'
+gem 'twitter'
+gem "koala", "~> 1.10.0rc"
+gem 'activeadmin', github: 'gregbell/active_admin'
+gem 'elasticsearch-model'
+gem 'elasticsearch-rails'
+gem 'faker'
+gem 'remotipart', '~> 1.2'
+gem 'thin'
+# gem "rmagick"
+gem "rails_autolink"
+gem 'carrierwave'
+gem "mini_magick", '4.0.0'
+# Use SCSS for stylesheets
+gem 'sass-rails', '4.0.0'
+gem 'sass', '3.4.5'
+gem 'sprockets', '2.11.0' # 2.12.0 is broken
+gem 'sprockets-rails'
+
+# Use Uglifier as compressor for JavaScript assets
+gem 'uglifier', '~> 2.5.3'
+# gem 'yui-compressor'
+# Use CoffeeScript for .js.coffee assets and views
+gem 'coffee-rails', '~> 4.1.0'
+# See https://github.com/sstephenson/execjs#readme for more supported runtimes
+gem 'therubyracer'
+# gem 'execjs'
+# Use jquery as the JavaScript library
+gem 'jquery-rails'
+gem 'jquery-ui-rails'
+gem 'jquery-form-rails'
+gem "jquery-fileupload-rails"
+
+gem 'rack-zippy'
+gem 'smusher'
+gem 'carrierwave-imageoptimizer'
+# gem 'jquery-turbolinks'
+# gem 'turbolinks'
+# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
+gem 'jbuilder', '~> 1.2'
+gem 'foundation-rails', '5.4.5.0'
+gem "nested_form"
+gem 'acts-as-taggable-on'
+# gem "bower-rails"
+gem 'chosen-rails', '~> 1.2.0'
+# gem "select2-rails"
+gem 'feedjira'
+gem 'mechanize'
+gem 'will_paginate', '~> 3.0'
+gem 's3'
+gem 'fog'
+
+group :doc do
+  # bundle exec rake doc:rails generates the API under doc/api.
+  gem 'sdoc', require: false
+end
+
+group :test do
+  gem 'cucumber-rails', :require => false
+  gem 'database_cleaner'
+  gem 'simplecov', :require => false
+  gem 'rspec'
+  gem 'shoulda'
+  gem 'factory_girl_rails'
+  # gem 'spork'
+end
+
+group :development, :test do
+  gem 'rspec-rails'
+  gem 'nyan-cat-formatter'
+end
+
+group :development do
+  # gem 'letter_opener'
+  gem 'quiet_assets'
+  gem 'better_errors'
+  gem 'pry'
+  gem 'pry-stack_explorer'
+  gem 'pry-remote'
+  # gem 'pry-debugger'
+  # gem 'debugger'
+end
+
+# Deploy with Capistrano
+gem 'capistrano'          , '~> 2.13.5'
+gem 'capistrano-ext'      , '~> 1.2.1'
+gem 'capistrano_colors'   , '~> 0.5.5'
+gem 'rvm-capistrano'
+
+group :production do
+  gem 'puma'
+end
+
+

@@ -1,0 +1,26 @@
+i
+<h1>New Visit Event</h1>                             
+
+ <%= simple_form_for(@visit_event, url: create_upcoming_visit_reports_path, method: :post) do |f| %>
+  <%= f.error_notification %>
+
+  <div class="row">
+    <div class="col-sm-4">
+      <div class="form-group">
+        <%= f.label :visit_date %>
+        <div class="row">
+          <div class="col-sm-6">
+            <%= f.date_field :visit_date %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <%= f.hidden_field :user_id, value: current_user.id %>
+
+  <div class="form-actions">
+    <%= f.button :submit %>
+    <%= link_to 'Back', page_path('events_calendar'), class: 'btn' %>
+  </div>
+<% end %>                  

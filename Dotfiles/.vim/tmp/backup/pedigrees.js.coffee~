@@ -1,0 +1,23 @@
+# Place all the behaviors and hooks related to the matching controller here.
+# All this logic will automatically be available in application.js.
+# You can use CoffeeScript in this file: http://coffeescript.org/
+jQuery ->
+  el = $("#livestock_heads")
+  locale = $("#locale").val()
+  el.on "change", ->
+    value = $("#livestock_heads option:selected").val()
+    $.ajax 
+      url: "/" + locale + "/livestock_heads/childs?parent_id=" + value, 
+      
+      datatype: "script",
+      
+      beforeSend: ->
+        $("#ajax_tell").html "<p>No childs yet</p>"
+
+      complete: (response) ->
+        $("#sddw").html(response)
+
+      error: ->
+        $("#ajax_tell").html "<p>ERROR</p>"
+
+      timeout: 3000

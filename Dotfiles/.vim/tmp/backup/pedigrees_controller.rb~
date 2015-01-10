@@ -1,0 +1,87 @@
+class PedigreesController < ApplicationController
+  before_action :set_pedigree, only: [:show, :edit, :update, :destroy]
+
+  # GET /pedigrees
+  # GET /pedigrees.json
+  def index
+    @pedigrees = Pedigree.all
+    ids = LivestockHead.includes(:parent).where("parent_id IS NOT NULL").map {|e| e.parent_id }.uniq
+    @parent_livestock_heads = LivestockHead.where(id: ids)
+  end
+
+  # GET /pedigrees/1
+  # GET /pedigrees/1.json
+  def show
+  end
+
+  # GET /pedigrees/new
+  def new
+    @pedigree = Pedigree.new
+  end
+
+  # GET /pedigrees/1/edit
+  def edit
+  end
+
+  # POST /pedigrees
+  # POST /pedigrees.json
+  def create
+    @pedigree = Pedigree.new(pedigree_params)
+
+    respond_to do |format|
+      if @pedigree.save
+        format.html { redirect_to @pedigree, notice: 'Pedigree was successfully created.' }
+        format.json { render :show, status: :created, location: @pedigree }
+      else
+        format.html { render :new }
+        format.json { render json: @pedigree.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /pedigrees/1
+  # PATCH/PUT /pedigrees/1.json
+  def update
+    respond_to do |format|
+      if @pedigree.update(pedigree_params)
+        format.html { redirect_to @pedigree, notice: 'Pedigree was successfully updated.' }
+        format.json { render :show, status: :ok, location: @pedigree }
+      else
+        format.html { render :edit }
+        format.json { render json: @pedigree.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /pedigrees/1
+  # DELETE /pedigrees/1.json
+  def destroy
+    @pedigree.destroy
+    respond_to do |format|
+      format.html { redirect_to pedigrees_url, notice: 'Pedigree was successfully destroyed.' }
+      format.json { head :no_content }
+    end
+  end
+
+  # POST /pedigrees/childs/1
+  def childs
+    binding.pry
+    parent = LivestockHead.find(params[:parent_id].to_i)
+    childs = parent.childs
+
+    respond_to do |format|
+      format.js {}
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_pedigree
+      @pedigree = Pedigree.find(params[:id])
+    end
+
+    # Never trust parameters from the scary internet, only allow the white list through.
+    def pedigree_params
+      params.require(:pedigree).permit(:pedigree, :description)
+    end
+end

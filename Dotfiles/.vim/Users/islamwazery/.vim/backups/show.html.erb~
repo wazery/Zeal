@@ -1,0 +1,232 @@
+<div class="container">
+<% if @manager %>
+		<h2>Manager Dashboard <small><span class="glyphicon glyphicon-dashboard"></span></small></h2>
+			<div class="row clearfix">
+				<div class="col-md-12 column wrapo">
+				<% company = @user.company %>
+	    	<% if company.nil? %>
+	  				<p>You are not assigned to any company yet, please inform the site admin to assign you to one!</p>
+	  			<% else %>
+	  				<p>Welcome back! You are currently managing a company named: <b><%= company.name %></b> <a href="#">View details »</a></p>
+
+						<ul class="breadcrumb" data-bootstro-title="Where you are!" data-bootstro-content=" This is to show where you are in the dashbaord" data-bootstro-width='800px' data-bootstro-nextButtonText='sdsd'>
+							<li>
+								<a href="/">Home</a> <span class="divider">/</span>
+							</li>
+							<li>
+								<a href="/dashboard">Dashboard</a> <span class="divider">/</span>
+							</li>
+							<li class="active">
+								Members
+							</li>
+						</ul>
+						<div class="row clearfix">
+							<div class="col-md-3 column">
+
+								<div class="list-group">
+								 <a class="list-group-item active">
+								 	<h4 class="list-group-item-heading">Company: <b><%= company.name %></h4>
+								 </a>
+								<a class="list-group-item members-panel active" style="cursor: pointer;">
+									<span class="glyphicon glyphicon-user"></span>
+										Members <span class="badge" style="float: right"><%= company.users.count %></span>
+								</a>
+								<a class="list-group-item surveys-panel" style="cursor: pointer;">
+									<span class="glyphicon glyphicon-envelope"></span>
+										Surveys <span class="badge" style="float: right"><%= company.surveys.count %></span>
+								</a>
+								<a class="list-group-item help-panel" style="cursor: pointer;">
+									<span class="glyphicon glyphicon-question-sign"></span>
+								<!--p class="list-group-item-text">
+										...
+									</p-->
+									Help
+								</a>
+							</div>
+
+							</div>
+							<div class="col-md-9 column">
+								<div class="tabbable members tab-1"  data-bootstro-title="sds" data-bootstro-content=" this is to show where you are in the dashbaord" data-bootstro-nextButtonText='sd' id="tabs">
+									<ul class="nav nav-tabs">
+										<li class="active">
+											<a href="#panel-303082" data-toggle="tab">All Members</a>
+										</li>
+									</ul>
+									<div class="tab-content">
+										<div class="tab-pane fade in active" id="panel-303082">
+											<ul class="list-group connectedSortable" id="sortable1" data-update-url='<%= dashboards_sort_url %>'>
+												<% company.users.order('sticky_order', 'position').each do |member| %>
+													<%= content_tag_for :li, member, {:class => ( member.sticky_order? ? 'sorting-disabled' : 'company-member' ), :style => 'display: block; margin-top: -1.2px;'} do %>
+														<% if not member.sticky_order? %>
+      												<div class="draghandle less-margin"></div>
+    												<% end %>
+														<div class="list-group-item member-item <%= 'disabled' if member.sticky_order? %>">
+															<h4 class="list-group-item-heading" style='<%= 'color: #A7A1A1; text-shadow: 0 2px 0 #FFF;' if member.sticky_order? %>'>
+															<% if member.first_name.present? and member.last_name.present? %>
+																<%= member.first_name.capitalize %> <%= member.last_name.capitalize %>
+															<% else %>
+																<%= member.username.capitalize %>
+															<% end %>
+															</h4>
+															<% if member.facebook_link.present? %>
+																<%= link_to "http://#{member.facebook_link}", class: "mybadge" do %>
+																<span>f</span>
+																<% end %>
+															<% end %>
+															<% if member.twitter_link.present? %>
+																<%= link_to "http://#{member.twitter_link}", class: "mybadge" do %>
+																<span>t</span>
+																<% end %>
+															<% end %>
+															<% if member.linkedin_link.present? %>
+																<%= link_to "http://#{member.linkedin_link}", class: "mybadge" do %>
+																<span style="margin-left: 4px;">ln</span>
+																<% end %>
+															<% end %>
+								    					<% if member.job_title.nil? or not member.job_title.present? %>
+								    						<p class="list-group-item-text" style="color: #D9534F;">No Job Title specified</p>
+								    					<% else %>
+								    						<%= member.job_title%>
+							    					<% end%>
+												  	</div>
+												  <% end %>
+											  <% end %>
+											</ul>
+										</div>
+
+									</div>
+								</div>	
+
+								<div class="tabbable surveys tab-2" data-bootstro-title="sds" data-bootstro-content=" this is to show where you are in the dashbaord" data-bootstro-nextButtonText='sd'  id="tabs" style="display: none;">
+
+									<ul class="nav nav-tabs">
+										<li class="active">
+											<a href="#panel-303083" data-toggle="tab">Current Surveys</a>
+										</li>
+										<li>
+											<a href="#panel-691809" data-toggle="tab">Create Survey</a>
+										</li>
+										<li>
+											<a href="#panel-648248" data-toggle="tab">Create Email Summary</a>
+										</li>
+									</ul>
+
+									<div class="tab-content surveys-tabs">
+
+										<div class="tab-pane fade in active" id="panel-303083">
+										<br>
+											<%= render :partial => 'surveys/index', locals: { :surveys => @surveys } %>
+											<%#= render :partial => 'surveys/edit', locals: { :surveys => @surveys } %>
+										</div>
+
+										<div class="tab-pane fade in" id="panel-691809">
+											<%= render :partial => 'surveys/new', locals: { :survey => @survey, :id => company.id }  %>
+										</div>
+
+										<div class="tab-pane fade in" id="panel-648248">
+										</br>
+											<%= form_tag '/surveys/send_summary' do %>
+												<p class="answer-user">Please select a survey</p>
+												<%= select_tag 'surveys', options_from_collection_for_select(@surveys, "id", "survey_title"), class: 'form-control survey-selectbox' %>
+												<%= submit_tag "Send", data: { disable_with: "Please wait..." }, class: "btn btn-sm btn-primary" %>
+											<% end %>
+										</div>
+
+									</div>
+
+								</div>			
+							</div>
+					</div>
+					<% end %>
+				</div>
+			</div>
+<% else %>
+	<h2>Your Dashboard</h2>
+		<div class="row clearfix">
+		<div class="col-md-12 column">
+		<% if @company.nil? %>
+			<p>You are not assigned to any company yet, please inform the site admin to assign you to one!</p>
+		<% else %>
+			<p>Welcome back! You are currently assigned to a company named: <b><%= @company.name %></b> <a href="#">View details »</a></p>
+
+			<ul class="breadcrumb">
+				<li>
+					<a href="/">Home</a> <span class="divider">/</span>
+				</li>
+				<li>
+					<a href="/dashboard">Dashboard</a> <span class="divider">/</span>
+				</li>
+				<li class="active">
+					Your Surveys
+				</li>
+			</ul>
+
+      <div class="tabbable surveys tab-2" data-bootstro-title="sds" data-bootstro-content=" this is to show where you are in the dashbaord" data-bootstro-nextButtonText='sd'  id="tabs" style="display: none;">
+
+        <ul class="nav nav-tabs">
+         <li>
+            <a href="#panel-691840" data-toggle="tab">Your Surveys</a>
+          </li>
+          <li>
+            <a href="#panel-843412" data-toggle="tab">Company Members</a>
+          </li>
+        </ul>
+
+        <div class="tab-content surveys-tabs">
+
+          <div class="tab-pane fade in" id="panel-691840">
+            <% if not @company.surveys.empty? %>
+              <ul class="list-group">
+                <% @company.surveys.each do |survey| %>
+                  <li class="survey-item" style="display: block; margin-top: -1.2px;">
+                    <a class="list-group-item">
+                      <h4 class="list-group-item-heading">
+                      <% if survey.survey_title %>
+                        <%= survey.survey_title.capitalize %>
+                      <% else %>
+                        <%  %>
+                      <% end %>
+                      </h4>
+                      <span class="badge"><%= survey.email_frequency %></span>
+                      <% if survey.survey_description %>
+                        <p class="list-group-item-text"><%= survey.survey_description %></p>
+                      <% else %>
+                        <%= %>
+                      <% end %>
+                      <div class="quess hide">
+                        <br><h5><strong>Questions:</strong></h5></p>
+                        <ol>
+                          <% survey.questions.each_with_index do |question, index| %>
+                           <li><%= question.question_title %></li>
+                            <% @user.answers.each do |answer| %>
+                              <% if answer.question_id == question.id %>
+                                <ul>
+                                  <li><%= answer.content %></li>
+                                </ul>
+                              <% end %>
+                            <% end %>
+                          <% end %>
+                        </ol>
+                      </div>
+                    </a>
+                  </li>
+                <% end %>
+                </ul>
+            <% else %>
+              <h5>There is no surveys for your company yet!</h5>
+            <% end %>
+          </div>
+          <div class="tab-pane fade in" id="panel-843412">
+            <%#= render :partial => 'surveys/new', locals: { :survey => @survey, :id => company.id }  %>
+          </div>
+
+        </div>
+
+      </div>			
+    </div>
+	
+				<% end %>
+				</div>
+		</div>
+<%end %>
+</div>

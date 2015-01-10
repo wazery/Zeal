@@ -1,0 +1,20 @@
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# Explicit paths specified without -i nor -o; assuming --only paths...
+# On branch noti
+# Changes to be committed:
+#	new file:   config/drone.database.yml
+#
+# Untracked files:
+#	"\\"
+#	app/views/shared/top_bar/_see_more.html.erb
+#	config/deploy/staging.rb
+#	config/environments/staging.rb
+#	config/fog_credentials.yml
+#	config/local_env.yml
+#	db/migrate/20141214125716_create_ps_settings_table.rb
+#	lib/tasks/dump.rake
+#	lib/tasks/maintenance.rake
+#	rebat-db-0.1.1/
+#

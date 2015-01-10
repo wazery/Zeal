@@ -1,0 +1,9 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =7
+let g:netrw_dirhist_1='/Users/islamwazery/Sources/livestock/livestock'
+let g:netrw_dirhist_2='/Users/islamwazery/.oh-my-vim'
+let g:netrw_dirhist_3='/Users/islamwazery/Sources/vider/lib/vider'
+let g:netrw_dirhist_4='/Users/islamwazery/Sources/rails-dev-box/my-test-app/config'
+let g:netrw_dirhist_5='/Users/islamwazery/Sources/Slickr'
+let g:netrw_dirhist_6='/Users/islamwazery/Sources/Slickr/lib/tasks'
+let g:netrw_dirhist_7='/Users/islamwazery/Sources/incident_report/spec/controllers'

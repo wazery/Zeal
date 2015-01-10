@@ -1,0 +1,108 @@
+<% attachment_url = url_helper(@post) %>
+<div class="pop_up_wrapper">
+
+  <div class="small-12 medium-9 columns popup_modal m" style="border-right: 1px solid #E9E9E9;">
+    <div class="pop_up_image" style="text-align:center">
+      <% if @current_image %>
+        <%= image_tag @current_image.image.full.url %>
+      <% else %>
+        <% if @post.cover_image %>
+          <%= image_tag @post.cover_image.image.full.url %>
+        <% elsif @post.images.first %>
+          <%= image_tag @post.images.first.image.full.url %>
+        <% else %>
+          <%= image_tag default_image %>
+        <% end %>
+      <% end %>
+      <%= render partial: "shares/social_side_bar", locals: {attachment: @post, attachment_url: attachment_url} %>
+    </div>
+
+    <ul class="pop_up_gallery">
+      <% @post.images.each do |image| %>
+        <li>
+          <%= link_to image.try(:image).try(:url) do %>
+            <%= image_tag image.try(:image).try(:thumb).try(:url) %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+      <div class="pop_up_comments">
+        <p class="comments_toggle">Comments | v</p>
+        <div class="comments_wrap">
+          <div class="post_content">
+            <footer class=<%="#{@post.id}_#{@post.class.to_s}_comments"%> >
+              <%= render partial: "comments/feed_comments", locals: {attachment: @post, attachment_url: attachment_url} %>
+            </footer>
+          </div>
+        </div>
+      </div>
+
+  </div>
+
+  <div class="small-12 medium-3 columns">
+
+    <% if @post.owner.class == User %>
+      <div class="pop_up_profile">
+        <%= link_to @post.owner do %>
+          <div class="small_pp2 grid_cover pop_up_pp" style="background-image: url(<%=asset_path avatar_url_helper(@post.owner)%>);">
+          </div>
+        <% end %>
+        <div class="pop_up_profile_nme">
+          <%= link_to @post.owner.name, @post.owner %>
+        </div>
+      </div>
+      <br>
+    <% else %>
+      <div class="pop_up_logo">
+        <%= link_to image_tag(avatar_url_helper(@post.owner)), @post.owner %>
+      </div>
+
+      <div class="pop_up_title">
+        <h1><%= link_to @post.owner.name, @post.owner %></h1>
+      </div>
+    <% end %>
+
+    <div class="pop_up_price">
+      <time>
+        <p>
+          <%= time_ago_in_words(@post.created_at)+" ago" %>
+        </p>
+      </time>
+    </div>
+
+    <div>
+      <%= @post.caption %>
+    </div>
+    <% if current_entity == @post.owner %>
+      <div class="pop_up_details">
+        <%= link_to "Edit", edit_post_path(@post) %>
+        <%= link_to "Delete", post_path(@post), method: :delete %>
+      </div>
+    <% end %>
+
+  </div>
+</div>
+<script>
+  $(document).ready(function(){
+    $(".m .pop_up_gallery li a").click(function(e){
+      e.preventDefault();
+      var anchor = $(this);
+      var new_image=anchor.attr('href');
+      var new_image_thumb=anchor.find('img').attr('src');
+      anchor.parent().parent().parent().parent().parent().find('.pop_up_image img').attr('src',new_image);
+      anchor.parent().parent().find('.active_pic').removeClass('active_pic');
+      anchor.find('img').addClass('active_pic');
+      $('.pop_up_wrapper').mCustomScrollbar("scrollTo", "top");
+    });
+    $(".comments").mCustomScrollbar({
+      theme: "minimal-dark",
+      scrollInertia: 300,
+    });
+
+    $('.pop_up_wrapper').mCustomScrollbar({
+      theme: "minimal-dark",
+      scrollInertia: 300,
+    });
+  });
+</script>

@@ -1,0 +1,8 @@
+class AddFarmIdToFarmer < ActiveRecord::Migration
+  def change
+    create_table :farmers_farms do |t|
+      t.belongs_to :farmers
+      t.belongs_to :farms
+    end
+  end
+end

@@ -1,0 +1,112 @@
+require 'rails_helper'
+
+RSpec.describe User, type: :model do
+  describe "associations" do
+    it { should have_many :social_providers }
+    it { should have_many(:comments).dependent(:destroy) }
+    it { should have_many(:likes).dependent(:destroy) }
+    it { should have_many(:posts).dependent(:destroy) }
+    it { should have_many :created_albums }
+    it { should have_many(:albums).dependent(:destroy) }
+    it { should have_many :created_collections }
+    it { should have_many :created_garments }
+    it { should have_many(:wishes).dependent(:destroy) }
+    it { should have_many :wished_garments }
+    it { should have_many(:owns).dependent(:destroy) }
+    it { should have_many :owned_garments }
+    it { should have_many :owned_brands }
+    it { should have_many :owned_blogs }
+    it { should have_many :admins_pages }
+    it { should have_many :admined_brands }
+    it { should have_many :admined_blogs }
+    it { should have_many :garments }
+    it { should have_many :connectors }
+    it { should have_many :tagged_in_images }
+    it { should belong_to :country }
+  end
+  
+  it { should respond_to(:name) }
+  it { should respond_to(:first_name) }
+  it { should respond_to(:last_name) }
+  it { should respond_to(:update_from_oauth) }
+  it { should respond_to(:initialize_albums) }
+  it { should respond_to(:admins?).with(2).arguments }
+  it { should respond_to(:admin?) }
+  it { should respond_to(:my_photos) }
+  it { should respond_to(:profile_photos) }
+  it { should respond_to(:closet_photos) }
+  it { should respond_to(:url) }
+
+  describe "when name is not present" do
+    before { subject.first_name = nil }
+    before { subject.last_name = nil }
+    it { should_not be_valid }
+  end
+
+  describe "validations" do
+    describe "presence of" do
+      it { should validate_presence_of :first_name }
+      it { should validate_presence_of :last_name }
+    end
+
+    # xit { should validate_inclusion_of :gender }
+  end
+
+  describe "#name" do
+    it "returns user name from first name and last name" do
+      user = build(:user)
+      expect(user.name).to eq "#{user.first_name} #{user.last_name}"
+   end
+  end
+
+  describe "#initialize_albums" do
+    xit "creates 3 albums with this user as owner and different titles" do
+      user = build(:user)
+      # double("Album", owner: user, title: 'My Photos')
+      # double("Album", owner: user, title: 'Cover Photos')
+      # double("Album", owner: user, title: 'Profile Photos')
+    end
+  end
+
+  describe "#admins?" do
+    let(:page) { build(:page) }
+    xit "returns true if he/she is admin" do
+      user = build(:user)
+      expect(user.admins?(page, type)).to be true
+    end
+
+    xit "returns false if he/she is not admin" do
+      user = build(:user)
+      expect(user.admins?(page, type)).to be false
+    end
+  end
+
+  describe "#admin?" do
+    xit "returns true unless admins pages is not empty" do
+      user = User.new(first_name: "firstname", last_name: "lastname")
+      expect(user.admin?).to be true
+    end
+  end
+
+  describe "#my_photos" do
+    xit "returns user own photos"
+  end
+
+  describe "#profile_photos" do
+    xit "returns profile photos"
+  end
+
+  describe "#closed_photos" do
+    xit "returns user closet photos"
+  end                      
+
+  describe "#set_tags" do
+  end
+
+  describe "#url" do
+    it "returns url for the user" do
+      user = build(:user)
+      expect(user.url).to eq "/users/#{user.id}"
+    end
+  end
+end

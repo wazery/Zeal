@@ -1,0 +1,6 @@
+class ChangeVaccinationAssociation < ActiveRecord::Migration
+  def change
+    remove_column :vaccination, :farm_id
+    add_column :vaccination, :farmer_id, :integer
+  end
+end

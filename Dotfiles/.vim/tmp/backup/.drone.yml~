@@ -1,0 +1,13 @@
+image: ruby2.0.0
+script:
+  - cp config/database.drone.yml config/database.yml
+  - bundle install
+  - mysql -u root -e 'create database test;'
+  - bundle exec rake db:schema:load
+  - bundle exec rspec spec
+services:
+  - mysql
+notify:
+  email:
+    recipients:
+      - wazery@ubuntu.com

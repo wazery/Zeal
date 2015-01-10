@@ -1,0 +1,5 @@
+module LivestockEventsHelper
+  def livestock_event_url id
+    livestock_event_url id
+  end
+end

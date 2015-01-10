@@ -1,0 +1,23 @@
+pick 875dc76 Re-style search box
+pick 76744b1 Changed db adapter to sqlite3
+pick e4b4cf9 Added movie title search ability
+pick 72b41e4 Added movie price range search form
+pick bb90879 Added filter search to movies index
+
+# Rebase 1205af2..bb90879 onto 1205af2
+#
+# Commands:
+#  p, pick = use commit
+#  r, reword = use commit, but edit the commit message
+#  e, edit = use commit, but stop for amending
+#  s, squash = use commit, but meld into previous commit
+#  f, fixup = like "squash", but discard this commit's log message
+#  x, exec = run command (the rest of the line) using shell
+#
+# These lines can be re-ordered; they are executed from top to bottom.
+#
+# If you remove a line here THAT COMMIT WILL BE LOST.
+#
+# However, if you remove everything, the rebase will be aborted.
+#
+# Note that empty commits are commented out

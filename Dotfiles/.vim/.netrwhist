@@ -1,0 +1,9 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =7
+let g:netrw_dirhist_1='/Users/islamwazery/Sources/moviestore/app/views/movies'
+let g:netrw_dirhist_2='/Users/islamwazery/Sources/hconnect'
+let g:netrw_dirhist_3='/Users/islamwazery/Sources/moviestore'
+let g:netrw_dirhist_4='/Users/islamwazery/Sources/vider/lib/vider'
+let g:netrw_dirhist_5='/Users/islamwazery/Sources/ratyrate/lib/ratyrate'
+let g:netrw_dirhist_6='/Users/islamwazery/Sources/vider/lib/vider'
+let g:netrw_dirhist_7='/Users/islamwazery/Sources/whitespace/config/initializers'

@@ -1,0 +1,6 @@
+json.array!(@visit_events) do |visit_event|
+    json.id visit_event.id
+    json.title 'Visit Event'
+    json.start visit_event.date
+    json.url visit_report_url visit_event.id
+end
