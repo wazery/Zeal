@@ -1,0 +1,8 @@
+My Beloved Replicant
+===
+
+The Plot
+---
+He was a very promising robotics scientist, tell his beloved one died. He was a pioneer in the cutting edge field biological engieenirng.
+
+He created a replicant of his beloved girl, he matched her DNA quite good. She was close to perfection, he never remebered she is not real!
