@@ -4,4 +4,4 @@ This folder is to implement the following:
 - Algorithms
 - Data Structures
 
-**Note:** It's language agnostic folder :).
+**Note:** It's a language agnostic folder :).
